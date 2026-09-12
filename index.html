@@ -259,6 +259,7 @@ footer b{color:var(--gold2)}
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+window.addEventListener("error",e=>{const s=document.getElementById("stamp");if(s)s.textContent="Script error: "+e.message+" (line "+(e.lineno||"?")+")";});
 /* ==================== DATA ==================== */
 const COUNTRIES=[
 {iso2:"TR",iso3:"TUR",name:"Turkey",capital:"Ankara",lon:32.86,lat:39.93,blocs:["NATO","EU candidate"],currency:"Turkish lira",area:"783,562",phone:"+90",hdi:"0.855",medAge:"34",fert:"1.6",photos:[{t:"Hagia Sophia",a:"Hagia Sophia"},{t:"Cappadocia",a:"Cappadocia"},{t:"Blue Mosque",a:"Sultan Ahmed Mosque"}]},
@@ -529,10 +530,10 @@ async function renderProfile(id,scroll){
   ${["macro","demo","health"].map(g=>`
   <div class="grp">
     <h4>${{macro:"Macroeconomics",demo:"Demographics",health:"Health"}[g]} <span id="cnt-${g}"></span></h4>
-    `<label class="src">Source
+    ${`<label class="src">Source
       <select data-grp="${g}">
         ${SRC_OPTS[g].map(k=>`<option value="${k}" ${state.src[g]===k?"selected":""}>${SOURCES[k]}</option>`).join("")}
-      </select></label>`
+      </select></label>`}
   </div>
   <div class="kpis" style="${gridCSS}">${g==="demo"?'<div class="glass kpi" style="border-color:#2dd4bf55"><div class="v" id="livepop" style="color:var(--teal)">…</div><div class="l">Population — live estimate</div><div class="y">Worldometer-style · WB base</div></div>':""}${IND[g].map((d,i)=>`
     <div class="glass kpi"><div class="v" id="${g}-${i}">…</div><div class="l">${d[1]}</div><div class="y" id="${g}y-${i}"></div></div>`).join("")}
@@ -800,7 +801,7 @@ async function renderCmpCharts(A,B){
     options:{responsive:true,maintainAspectRatio:false,
       scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:"rgba(255,255,255,.08)"},angleLines:{color:"rgba(255,255,255,.08)"},pointLabels:{color:"#9aa4bd",font:{size:11}}}},
       plugins:{legend:{labels:{color:"#9aa4bd",boxWidth:14}},tooltip:{...tt,callbacks:{label:x=>{const raw=x.datasetIndex===0?rawsA[x.dataIndex]:rawsB[x.dataIndex];
-        return" "+x.dataset.label+": "+(x.parsed.r==null?"n/a":x.parsed.r+" /100")+(raw!=null&&isFinite(raw)?" · raw "+(+raw).toFixed(1):"");}}}}}));
+        return" "+x.dataset.label+": "+(x.parsed.r==null?"n/a":x.parsed.r+" /100")+(raw!=null&&isFinite(raw)?" · raw "+(+raw).toFixed(1):"");}}}}}}));
   const[ga,gb]=await Promise.all([rawVal(A,"NY.GDP.MKTP.CD"),rawVal(B,"NY.GDP.MKTP.CD")]);
   if(s!==cmpSeq)return;
   cmpCharts.push(new Chart(document.getElementById("cmp-bars"),{type:"bar",
