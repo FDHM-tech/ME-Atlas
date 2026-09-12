@@ -32,7 +32,7 @@ nav a:hover{color:var(--tx);background:rgba(255,255,255,.06)}
   background:rgba(230,193,92,.08);color:var(--gold2);cursor:pointer;transition:.25s}
 #refresh:hover{border-color:var(--gold);transform:translateY(-1px)}
 .hero{min-height:92vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;padding:120px 20px 70px;overflow:hidden}
-.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.35;animation:float 14s ease-in-out infinite}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.35;animation:float 14s ease-in-out infinite;pointer-events:none}
 .orb.o1{width:480px;height:480px;background:#e6c15c22;top:-120px;left:-100px}
 .orb.o2{width:420px;height:420px;background:#2dd4bf1f;bottom:-140px;right:-80px;animation-delay:-6s}
 .orb.o3{width:300px;height:300px;background:#a78bfa1a;top:40%;left:55%;animation-delay:-3s}
@@ -41,7 +41,7 @@ nav a:hover{color:var(--tx);background:rgba(255,255,255,.06)}
 .hero h1{font-size:clamp(40px,7.5vw,80px);font-weight:800;line-height:1.12;
   background:linear-gradient(120deg,#fff 20%,var(--gold2) 55%,#fff 80%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero p.sub{max-width:660px;color:var(--mut);font-size:16px;line-height:1.85;margin:18px auto 0}
-.hero .cta{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.hero .cta{position:relative;z-index:2;margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .btn{font-weight:600;font-size:14.5px;padding:13px 28px;border-radius:12px;border:none;cursor:pointer;transition:.25s;text-decoration:none;display:inline-block}
 .btn.gold{background:linear-gradient(135deg,var(--gold),#c79a2e);color:#191104}
 .btn.gold:hover{transform:translateY(-3px);box-shadow:0 12px 30px #e6c15c44}
@@ -162,7 +162,7 @@ footer b{color:var(--gold2)}
   <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
   <div class="kicker">Economy &middot; Demographics &middot; Health &middot; Relations</div>
   <h1>Middle East Atlas</h1>
-  <p class="sub">Live macroeconomic, demographic and health indicators for 17 countries and 2 clusters
+  <p class="sub">Live macroeconomic, demographic and health indicators for 16 countries and 2 clusters
   (Levant &amp; GCC), the trade, energy, migration and diplomacy ties that bind them, and the iconic
   landmarks of each — with selectable data sources and continuously updated figures.</p>
   <div class="cta">
@@ -172,9 +172,9 @@ footer b{color:var(--gold2)}
   <div class="totals">
     <div class="t"><div class="n" id="tt-pop">…</div><div class="l">Total population</div></div>
     <div class="t"><div class="n" id="tt-gdp">…</div><div class="l">Combined GDP</div></div>
-    <div class="t"><div class="n">17</div><div class="l">Countries</div></div>
+    <div class="t"><div class="n">16</div><div class="l">Countries</div></div>
     <div class="t"><div class="n">+2</div><div class="l">Clusters (Levant &middot; GCC)</div></div>
-    <div class="t"><div class="n">18</div><div class="l">Bilateral ties</div></div>
+    <div class="t"><div class="n">13</div><div class="l">Trade &amp; energy ties</div></div>
   </div>
   <div class="live"><i></i><span id="stamp">connecting to live sources…</span></div>
 </header>
@@ -212,19 +212,16 @@ footer b{color:var(--gold2)}
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="kick">Geopolitics</div>
-      <h2>Relationship network</h2>
-      <p>Trade, energy, migration, alliances and tensions. Click a node to highlight its ties and open its profile. Hover a line for details.</p>
+      <h2>Bilateral trade &amp; energy network</h2>
+      <p>Approximate bilateral trade volumes and energy links between countries. Click a node to highlight its ties and open its profile. Hover a line for the figure.</p>
       <div class="gold-line"></div>
     </div>
     <div class="glass net-wrap reveal" style="padding:22px">
       <svg id="netsvg" viewBox="0 0 800 500"></svg>
       <div class="net-tip" id="nettip"></div>
       <div class="legend">
-        <span class="lg"><i style="border-color:var(--blue)"></i>Trade</span>
-        <span class="lg"><i style="border-color:#93c5fd;border-top-style:dashed"></i>Migration &amp; remittances</span>
-        <span class="lg"><i style="border-color:var(--pur)"></i>Energy</span>
-        <span class="lg"><i style="border-color:#9ca3af;border-top-style:dotted"></i>Diplomacy &amp; blocs</span>
-        <span class="lg"><i style="border-color:var(--danger);border-top-style:dashed"></i>Tension &amp; conflict</span>
+        <span class="lg"><i style="border-color:var(--blue)"></i>Trade (≈ US$ bn)</span>
+        <span class="lg"><i style="border-color:var(--pur)"></i>Energy link</span>
       </div>
     </div>
   </div>
@@ -247,7 +244,7 @@ footer b{color:var(--gold2)}
         <table class="cmp" id="cmptable"></table>
       </div>
       <div class="p-cols" style="margin-top:16px">
-        <div class="glass panel"><h4>Normalized profile radar <span>0&ndash;100 relative to all 17 countries</span></h4><div class="chartbox"><canvas id="cmp-radar"></canvas></div></div>
+        <div class="glass panel"><h4>Normalized profile radar <span>0&ndash;100 relative to all 16 countries</span></h4><div class="chartbox"><canvas id="cmp-radar"></canvas></div></div>
         <div class="glass panel"><h4>GDP comparison <span>latest available &middot; US$ bn</span></h4><div class="chartbox"><canvas id="cmp-bars"></canvas></div></div>
       </div>
     </div>
@@ -257,7 +254,7 @@ footer b{color:var(--gold2)}
 <footer>
   <b>Middle East Atlas</b> — live-data prototype<br>
   Sources: World Bank API &middot; WHO Global Health Observatory &middot; Wikimedia Commons (attributed photos) &middot; Reference figures: areas, currencies, HDI<br>
-  Figures update automatically on load and on demand via the refresh button. Missing values are shown as &ldquo;&mdash;&rdquo;.
+  Figures update automatically on load and on demand via the refresh button. Missing values are shown as &ldquo;&mdash;&rdquo;.<br>Bilateral trade volumes are approximate estimates (latest available year).
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -268,7 +265,6 @@ const COUNTRIES=[
 {iso2:"CY",iso3:"CYP",name:"Cyprus",capital:"Nicosia",lon:33.38,lat:35.19,blocs:["EU","Commonwealth"],currency:"Euro",area:"9,251",phone:"+357",hdi:"0.907",medAge:"37",fert:"1.3",photos:[{t:"Old Nicosia",a:"Nicosia"},{t:"Paphos",a:"Paphos"},{t:"Troodos Mountains",a:"Troodos Mountains"}]},
 {iso2:"SY",iso3:"SYR",name:"Syria",capital:"Damascus",lon:36.29,lat:33.51,blocs:["Arab League"],currency:"Syrian pound",area:"185,180",phone:"+963",hdi:"0.557",medAge:"24",fert:"2.7",photos:[{t:"Palmyra",a:"Palmyra"},{t:"Umayyad Mosque",a:"Umayyad Mosque"},{t:"Citadel of Aleppo",a:"Citadel of Aleppo"}]},
 {iso2:"LB",iso3:"LBN",name:"Lebanon",capital:"Beirut",lon:35.50,lat:33.89,blocs:["Arab League"],currency:"Lebanese pound",area:"10,452",phone:"+961",hdi:"0.723",medAge:"30",fert:"2.0",photos:[{t:"Baalbek",a:"Baalbek"},{t:"Jeita Grotto",a:"Jeita Grotto"},{t:"Beirut Corniche",a:"Beirut"}]},
-{iso2:"IL",iso3:"ISR",name:"Israel",capital:"Jerusalem",lon:35.21,lat:31.77,blocs:["OECD"],currency:"New shekel",area:"22,072",phone:"+972",hdi:"0.915",medAge:"30",fert:"2.9",photos:[{t:"Western Wall",a:"Western Wall"},{t:"Dead Sea",a:"Dead Sea"},{t:"Tel Aviv",a:"Tel Aviv"}]},
 {iso2:"PS",iso3:"PSE",name:"Palestine",capital:"East Jerusalem / Ramallah",lon:35.20,lat:31.90,blocs:["Arab League"],currency:"Shekel / Jordanian dinar",area:"6,020",phone:"+970",hdi:"0.715",medAge:"21",fert:"3.3",photos:[{t:"Dome of the Rock",a:"Dome of the Rock"},{t:"Church of the Nativity",a:"Church of the Nativity"},{t:"Old Jerusalem",a:"Jerusalem"}]},
 {iso2:"JO",iso3:"JOR",name:"Jordan",capital:"Amman",lon:35.93,lat:31.95,blocs:["Arab League"],currency:"Jordanian dinar",area:"89,342",phone:"+962",hdi:"0.736",medAge:"24",fert:"2.6",photos:[{t:"Petra",a:"Petra"},{t:"Wadi Rum",a:"Wadi Rum"},{t:"Amman Citadel",a:"Amman Citadel"}]},
 {iso2:"IQ",iso3:"IRQ",name:"Iraq",capital:"Baghdad",lon:44.36,lat:33.32,blocs:["Arab League","OPEC"],currency:"Iraqi dinar",area:"438,317",phone:"+964",hdi:"0.686",medAge:"21",fert:"3.4",photos:[{t:"Baghdad",a:"Baghdad"},{t:"Erbil Citadel",a:"Erbil Citadel"},{t:"Great Mosque of Samarra",a:"Great Mosque of Samarra"}]},
@@ -295,24 +291,19 @@ const byId=Object.fromEntries(ALL.map(e=>[e.isCluster?e.id:e.iso2,e]));
 const byIso=Object.fromEntries(COUNTRIES.map(c=>[c.iso2,c]));
 
 const EDGES=[
-{a:"SA",b:"AE",type:"trade",note:"UAE is Saudi Arabia's largest GCC trade partner"},
-{a:"SA",b:"QA",type:"diplo",note:"Fellow GCC members; borders reopened in 2021"},
-{a:"SA",b:"EG",type:"remit",note:"~2.9M Egyptians work in Saudi Arabia; major deposits and aid"},
-{a:"SA",b:"IQ",type:"energy",note:"Power-grid interconnection and energy deals"},
-{a:"SA",b:"KW",type:"energy",note:"Linked via the GCC interconnection grid"},
-{a:"SA",b:"BH",type:"energy",note:"King Fahd Causeway links the two economies"},
-{a:"SA",b:"JO",type:"remit",note:"Gulf aid packages and Jordanian labor"},
-{a:"IR",b:"IQ",type:"trade",note:"Iraq is Iran's largest non-oil export market"},
-{a:"IR",b:"AE",type:"trade",note:"Billions in non-oil trade via Dubai"},
-{a:"IR",b:"QA",type:"diplo",note:"Doha hosts a mediation channel to Tehran"},
-{a:"IR",b:"LB",type:"diplo",note:"Long-standing Hezbollah alliance"},
-{a:"TR",b:"IQ",type:"trade",note:"Iraq is among Turkey's top export markets"},
-{a:"TR",b:"EG",type:"diplo",note:"Ambassadors restored 2023; $15 bn trade target"},
-{a:"EG",b:"IL",type:"diplo",note:"1979 peace treaty; gas and trade deals"},
-{a:"AE",b:"IL",type:"diplo",note:"Abraham Accords normalization since 2020"},
-{a:"IL",b:"IR",type:"conflict",note:"Long-running shadow conflict"},
-{a:"IQ",b:"KW",type:"trade",note:"Khor Abdullah trade corridor"},
-{a:"CY",b:"TR",type:"conflict",note:"Island divided since 1974; ongoing dispute"},
+{a:"SA",b:"AE",type:"trade",vol:45,yr:"2023",note:"Non-oil bilateral trade"},
+{a:"IR",b:"IQ",type:"trade",vol:10,yr:"2022",note:"Iran's largest non-oil export market"},
+{a:"IR",b:"AE",type:"trade",vol:21,yr:"2023",note:"Mostly non-oil trade via Dubai"},
+{a:"TR",b:"IQ",type:"trade",vol:20,yr:"2022",note:"Turkish exports to Iraq"},
+{a:"SA",b:"EG",type:"trade",vol:9,yr:"2023",note:"Saudi-Egyptian trade"},
+{a:"SA",b:"JO",type:"trade",vol:5,yr:"2023",note:"Saudi-Jordanian trade"},
+{a:"TR",b:"EG",type:"trade",vol:5,yr:"2023",note:"Bilateral trade"},
+{a:"IQ",b:"KW",type:"trade",vol:null,yr:null,note:"Khor Abdullah corridor"},
+{a:"SA",b:"QA",type:"trade",vol:null,yr:null,note:"Post-2021 recovery in flows"},
+{a:"IR",b:"QA",type:"trade",vol:null,yr:null,note:"Trade largely via third markets"},
+{a:"SA",b:"KW",type:"energy",vol:null,yr:null,note:"GCC power-grid interconnection"},
+{a:"SA",b:"BH",type:"energy",vol:null,yr:null,note:"King Fahd Causeway link"},
+{a:"SA",b:"IQ",type:"energy",vol:null,yr:null,note:"Power-grid interconnection"},
 ];
 
 /* Indicator registry: [wbCode, label, kind] — whoCode optional */
@@ -321,8 +312,19 @@ macro:[["NY.GDP.MKTP.CD","GDP (US$)","money"],["NY.GDP.PCAP.CD","GDP per capita 
 demo:[["SP.POP.TOTL","Population","int"],["SP.POP.GROW","Population growth","pct"],["SP.URB.TOTL.IN.ZS","Urban population, %","pct"],["SP.POP.0014.TO.ZS","Ages 0–14, %","pct"],["SP.POP.1564.TO.ZS","Ages 15–64, %","pct"],["SP.POP.65UP.TO.ZS","Ages 65+, %","pct"],["SP.DYN.LE00.IN","Life expectancy (yrs)","yrs",,,"WHOSIS_000001"],["SP.DYN.IMRT.IN","Infant mortality (per 1,000)","num1",,,"WHOSIS_000015"]],
 health:[["SH.XPD.CHEX.GD.ZS","Health spending, % of GDP","pct"],["SH.XPD.CHEX.PC.CD","Health spending per capita (US$)","money"],["SH.XPD.GHED.CH.ZS","Public share of health spending, %","pct"],["SH.XPD.PVTD.CH.ZS","Private share of health spending, %","pct"],["SH.MED.BEDS.ZS","Hospital beds (per 1,000)","num1",,,"WHS_4"],["SH.MED.PHYS.ZS","Physicians (per 1,000)","num1",,,"WHS_5"],["SP.DYN.LE00.IN","Life expectancy (yrs)","yrs",,,"WHOSIS_000001"],["SP.DYN.IMRT.IN","Infant mortality (per 1,000)","num1",,,"WHOSIS_000015"]],
 };
-const SOURCES={wb:"World Bank",who:"WHO"};
+const SOURCES={wb:"World Bank",who:"WHO",imf:"IMF"};
+const SRC_OPTS={macro:["wb","imf"],demo:["wb","who"],health:["wb","who"]};
+const IMFMAP={"NY.GDP.MKTP.CD":"NGDPD","NY.GDP.PCAP.CD":"NGDPDPC","FP.CPI.TOTL.ZG":"PCPIPCH","SL.UEM.TOTL.ZS":"LUR","NY.GDP.MKTP.KD.ZG":"NGDP_RPCH"};
 const state={src:{macro:"wb",demo:"wb",health:"wb"}};
+const liveParams={};
+function tickLive(){
+  const el=document.getElementById("livepop");
+  const p=liveParams[current];
+  if(!el||!p)return;
+  const yrs=(Date.now()-p.base)/31557600000;
+  el.textContent=Math.floor(p.p0*Math.pow(1+p.rate,Math.max(0,yrs))).toLocaleString("en-US");
+}
+setInterval(tickLive,1000);
 const cache={};
 
 /* ==================== FETCHERS ==================== */
@@ -366,22 +368,43 @@ function fetchWHO(code,iso3){
   })();
   return cache[key];
 }
+function fetchIMF(ind,iso3){
+  const key="imf:"+iso3+":"+ind;
+  if(cache[key]!==undefined)return cache[key];
+  cache[key]=(async()=>{
+    const j=await fetchWithRetry(`https://www.imf.org/external/datamapper/api/v1/${ind}/${iso3}`);
+    const vals=j&&j.values&&j.values[ind]&&j.values[ind][iso3];
+    if(!vals)return null;
+    const ys=Object.keys(vals).filter(y=>vals[y]!=null&&isFinite(+vals[y])).sort();
+    if(!ys.length)return null;
+    const y=ys[ys.length-1];
+    return{v:+vals[y],y};
+  })();
+  return cache[key];
+}
 function srcFn(src){return src==="who"?fetchWHO:fetchWB;}
 function indDef(group,key){return IND[group].find(d=>d[0]===key);}
 function indWHO(group,key){const d=indDef(group,key);return d&&d[5];}
 const SUM_KEYS=new Set(["SP.POP.TOTL","NY.GDP.MKTP.CD"]);
 
 async function getVal(ent,group,key){
-  const def=indDef(group,key);const src=state.src[group];
+  const src=state.src[group];
+  let code=key,fn=fetchWB;
+  if(src==="who"){code=indWHO(group,key);fn=fetchWHO;}
+  else if(src==="imf"){code=IMFMAP[key];fn=fetchIMF;}
+  if(!code)return null;
   if(!ent.isCluster){
-    if(src==="who"){const w=indWHO(group,key);return w?fetchWHO(w,ent.iso3):null;}
-    return fetchWB(key,ent.iso3);
+    const r=await fn(code,ent.iso3);
+    if(src==="who"&&!r)return fetchWB(key,ent.iso3);
+    return r;
   }
   /* cluster aggregation */
-  const code=src==="who"?indWHO(group,key):key;
-  if(!code)return null;
-  const parts=await Promise.all(ent.members.map(m=>srcFn(src)(code,byIso[m].iso3)));
-  const ok=parts.filter(p=>p&&isFinite(p.v));
+  let parts=await Promise.all(ent.members.map(m=>fn(code,byIso[m].iso3)));
+  let ok=parts.filter(p=>p&&isFinite(p.v));
+  if(src==="who"&&!ok.length){
+    parts=await Promise.all(ent.members.map(m=>fetchWB(key,byIso[m].iso3)));
+    ok=parts.filter(p=>p&&isFinite(p.v));
+  }
   if(!ok.length)return null;
   if(SUM_KEYS.has(key))
     return{v:ok.reduce((s,p)=>s+p.v,0),y:ok.map(p=>p.y).sort()[0]+" (mixed)"};
@@ -506,20 +529,19 @@ async function renderProfile(id,scroll){
   ${["macro","demo","health"].map(g=>`
   <div class="grp">
     <h4>${{macro:"Macroeconomics",demo:"Demographics",health:"Health"}[g]} <span id="cnt-${g}"></span></h4>
-    ${g==="macro"
-      ?'<span class="src">Source: World Bank</span>'
-      :`<label class="src">Source
+    `<label class="src">Source
       <select data-grp="${g}">
-        ${Object.entries(SOURCES).map(([k,n])=>`<option value="${k}" ${state.src[g]===k?"selected":""}>${n}</option>`).join("")}
-      </select></label>`}
+        ${SRC_OPTS[g].map(k=>`<option value="${k}" ${state.src[g]===k?"selected":""}>${SOURCES[k]}</option>`).join("")}
+      </select></label>`
   </div>
-  <div class="kpis" style="${gridCSS}">${IND[g].map((d,i)=>`
+  <div class="kpis" style="${gridCSS}">${g==="demo"?'<div class="glass kpi" style="border-color:#2dd4bf55"><div class="v" id="livepop" style="color:var(--teal)">…</div><div class="l">Population — live estimate</div><div class="y">Worldometer-style · WB base</div></div>':""}${IND[g].map((d,i)=>`
     <div class="glass kpi"><div class="v" id="${g}-${i}">…</div><div class="l">${d[1]}</div><div class="y" id="${g}y-${i}"></div></div>`).join("")}
   </div>`).join("")}
   <div class="p-cols">
     <div class="glass panel"><h4>GDP trajectory <span>2000–present · US$ bn</span></h4><div class="chartbox"><canvas id="c-gdp"></canvas></div></div>
     <div class="glass panel"><h4>Health spending trajectory <span>% of GDP · US$ per capita</span></h4><div class="chartbox"><canvas id="c-health"></canvas></div></div>
     <div class="glass panel"><h4>Health financing mix <span>latest year · % of current spending</span></h4><div class="chartbox"><canvas id="c-mix"></canvas></div></div>
+      <div class="glass panel"><h4>GDP composition <span>latest year · % of GDP by sector</span></h4><div class="chartbox"><canvas id="c-sector"></canvas></div></div>
     <div class="glass panel"><h4>Demographics &amp; capacity <span>age structure · medical capacity</span></h4><div class="chartbox"><canvas id="c-demo"></canvas></div></div>
   </div>
   <div class="glass panel" style="margin-top:16px"><h4>Signature landmarks <span>3 photos · via Wikimedia Commons</span></h4>
@@ -527,7 +549,7 @@ async function renderProfile(id,scroll){
       <figure class="ph"><img id="ph${i}" alt="${p.t}"><figcaption class="cap"><span id="pc${i}">${p.t}</span><span class="src">Wikimedia</span></figcaption></figure>`).join("")}
     </div>
   </div>
-  <div class="glass panel" style="margin-top:16px"><h4>${ent.isCluster?"Intra-cluster relations":"Regional relations"}</h4><div class="rels" id="rels"></div></div>`;
+  <div class="glass panel" style="margin-top:16px"><h4>${ent.isCluster?"Intra-cluster trade &amp; ties":"Trade &amp; economic ties"}</h4><div class="rels" id="rels"></div></div>`;
   if(scroll)document.getElementById("country-sec").scrollIntoView({behavior:"smooth"});
 
   /* source selectors */
@@ -545,7 +567,7 @@ async function renderProfile(id,scroll){
         const el=document.getElementById(`${g}-${i}`);
         if(r&&isFinite(r.v)){animate(el,r.v,v=>fmt(kind,v));n++;}else el.textContent="—";
         document.getElementById(`${g}y-${i}`).textContent=r&&r.y?r.y:"";
-        document.getElementById("cnt-"+g).textContent=(state.src[g]==="who"?"· via WHO":"· via World Bank");
+        document.getElementById("cnt-"+g).textContent={wb:"· via World Bank",who:"· via WHO (WB fallback)",imf:"· via IMF"}[state.src[g]];
       });
     }
   }
@@ -573,16 +595,25 @@ async function renderProfile(id,scroll){
       scales:{...baseScales,y:{...baseScales.y,position:"left",title:{display:true,text:"% of GDP",color:"#2dd4bf"}},
         y1:{position:"right",ticks:{color:"#8b7bd8"},grid:{display:false},title:{display:true,text:"US$ per capita",color:"#a78bfa"}}}}});
 
-  const[pub,pvt]=await Promise.all([getVal(ent,"health","SH.XPD.GHED.CH.ZS"),getVal(ent,"health","SH.XPD.PVTD.CH.ZS")]);
+  const[pub,pvt,ext]=await Promise.all([getVal(ent,"health","SH.XPD.GHED.CH.ZS"),getVal(ent,"health","SH.XPD.PVTD.CH.ZS"),rawVal(ent,"SH.XPD.EHEX.CH.ZS")]);
   if(mySeq!==reqSeq)return;
+  const otherH=pub&&pvt?Math.max(0,100-pub.v-pvt.v-(ext&&isFinite(ext.v)?ext.v:0)):null;
   mk("c-mix",{type:"doughnut",
-    data:{labels:["Public","Private","External/other"],datasets:[{data:[pub?pub.v:null,pvt?pvt.v:null,
-      pub&&pvt?Math.max(0,100-pub.v-pvt.v):null],
-      backgroundColor:["#2dd4bf","#a78bfa","#3a4560"],borderColor:"#0b1120",borderWidth:3,hoverOffset:8}]},
+    data:{labels:["Public","Private","External (aid)","Other (residual)"],datasets:[{data:[pub?pub.v:null,pvt?pvt.v:null,ext&&isFinite(ext.v)?ext.v:null,otherH],
+      backgroundColor:["#2dd4bf","#a78bfa","#f4d98c","#3a4560"],borderColor:"#0b1120",borderWidth:3,hoverOffset:8}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:"58%",
       plugins:{legend:{position:"bottom",labels:{color:"#9aa4bd",boxWidth:14,padding:14}},
       tooltip:{...tt,callbacks:{label:x=>" "+x.label+": "+(x.parsed==null?"—":x.parsed.toFixed(1)+"%")}}}}});
 
+  const[agr,inds,svc]=await Promise.all([rawVal(ent,"NV.AGR.TOTL.ZS"),rawVal(ent,"NV.IND.TOTL.ZS"),rawVal(ent,"NV.SRV.TOTL.ZS")]);
+  if(mySeq!==reqSeq)return;
+  const otherG=agr&&inds&&svc&&isFinite(agr.v+inds.v+svc.v)?Math.max(0,100-agr.v-inds.v-svc.v):null;
+  mk("c-sector",{type:"doughnut",
+    data:{labels:["Agriculture","Industry","Services","Net taxes/other"],datasets:[{data:[agr?agr.v:null,inds?inds.v:null,svc?svc.v:null,otherG],
+      backgroundColor:["#2dd4bf","#60a5fa","#e6c15c","#3a4560"],borderColor:"#0b1120",borderWidth:3,hoverOffset:8}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"58%",
+      plugins:{legend:{position:"bottom",labels:{color:"#9aa4bd",boxWidth:14,padding:14}},
+      tooltip:{...tt,callbacks:{label:x=>" "+x.label+": "+(x.parsed==null?"—":x.parsed.toFixed(1)+"%")}}}}});
   const[a0,a1,a2,beds,phys]=await Promise.all([
     getVal(ent,"demo","SP.POP.0014.TO.ZS"),getVal(ent,"demo","SP.POP.1564.TO.ZS"),getVal(ent,"demo","SP.POP.65UP.TO.ZS"),
     getVal(ent,"health","SH.MED.BEDS.ZS"),getVal(ent,"health","SH.MED.PHYS.ZS")]);
@@ -595,6 +626,18 @@ async function renderProfile(id,scroll){
     options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",
       plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:x=>" "+(x.parsed.x==null?"—":x.parsed.x.toFixed(1))}}},
       scales:{x:{...baseScales.x,grid:{color:"rgba(255,255,255,.05)"}},y:{ticks:{color:"#9aa4bd"},grid:{display:false}}}}});
+
+  /* live population estimate */
+  {
+    const[lp,lg]=await Promise.all([
+      ent.isCluster?rawVal(ent,"SP.POP.TOTL"):fetchWB("SP.POP.TOTL",ent.iso3),
+      ent.isCluster?rawVal(ent,"SP.POP.GROW"):fetchWB("SP.POP.GROW",ent.iso3)]);
+    if(mySeq===reqSeq&&lp&&isFinite(lp.v)){
+      const base=lp.y&&!isNaN(+lp.y)?new Date(+lp.y,6,1).getTime():Date.now();
+      liveParams[id]={p0:lp.v,rate:lg&&isFinite(lg.v)?lg.v/100:0.011,base};
+      tickLive();
+    }
+  }
 
   /* photos */
   ent.photos.forEach(async(p,i)=>{
@@ -620,8 +663,9 @@ async function renderProfile(id,scroll){
   document.getElementById("rels").innerHTML=rels.map(e=>{
     const o=byIso[e.a===id?e.b:(ent.isCluster?e.a:e.b)];
     const otherId=ent.isCluster?e.a:id===e.a?e.b:e.a;
-    const lbl={trade:"Trade",remit:"Migration & aid",energy:"Energy",diplo:"Diplomacy",conflict:"Tension"}[e.type];
-    return`<div class="rel"><span class="badge b-${e.type}">${lbl}</span><div><b style="cursor:pointer" onclick="select('${otherId}')">${byIso[otherId].name}</b><div class="n">${e.note}</div></div></div>`;
+    const lbl={trade:"Trade",energy:"Energy"}[e.type];
+    const volTxt=e.vol?("≈ $"+e.vol+" bn"+(e.yr?" · "+e.yr:"")):"n/a";
+    return`<div class="rel"><span class="badge b-${e.type}">${lbl}</span><div><b style="cursor:pointer" onclick="select('${otherId}')">${byIso[otherId].name}</b><div class="n">${e.type==="trade"?("Trade volume: "+volTxt):e.note}</div></div></div>`;
   }).join("")||`<div class="empty">No recorded ties yet.</div>`;
 }
 
@@ -647,7 +691,8 @@ const edgeEls=EDGES.map(e=>{
   l.setAttribute("opacity",.8);l.style.filter="drop-shadow(0 0 5px "+s.c+")";
   if(s.d)l.setAttribute("stroke-dasharray",s.d);
   l.dataset.a=e.a;l.dataset.b=e.b;
-  const txt=`${A.name} ↔ ${B.name} — ${e.note}`;
+  const volTxt=e.vol?("≈ $"+e.vol+" bn"+(e.yr?" ("+e.yr+")":"")):"volume n/a";
+  const txt=`${A.name} ↔ ${B.name} — ${volTxt} · ${e.note}`;
   l.addEventListener("mousemove",ev=>{
     const rc=svg.getBoundingClientRect();
     tip.style.opacity=1;tip.style.left=(ev.clientX-rc.left+14)+"px";tip.style.top=(ev.clientY-rc.top-14)+"px";tip.textContent=txt;});
@@ -738,21 +783,24 @@ async function renderCmpCharts(A,B){
   const vals=await Promise.all(RADAR.map(async([k])=>{
     const all=await Promise.all(COUNTRIES.map(c=>fetchWB(k,c.iso3)));
     const nums=all.filter(x=>x&&isFinite(x.v)).map(x=>x.v);
-    if(!nums.length)return[null,null];
+    if(!nums.length)return[null,null,null,null];
     const lo=Math.min(...nums),hi=Math.max(...nums);
     const norm=async ent=>{const r=await rawVal(ent,k);
-      if(!r||!isFinite(r.v))return null;
-      return hi>lo?+((r.v-lo)/(hi-lo)*100).toFixed(1):50;};
-    return[await norm(A),await norm(B)];
+      if(!r||!isFinite(r.v))return[null,null];
+      return[hi>lo?+((r.v-lo)/(hi-lo)*100).toFixed(1):50,r.v];};
+    const na=await norm(A),nb=await norm(B);
+    return[na[0],nb[0],na[1],nb[1]];
   }));
   if(s!==cmpSeq)return;
+  const rawsA=vals.map(v=>v[2]),rawsB=vals.map(v=>v[3]);
   cmpCharts.push(new Chart(document.getElementById("cmp-radar"),{type:"radar",
     data:{labels:RADAR.map(r=>r[1]),datasets:[
       {label:A.name,data:vals.map(v=>v[0]),borderColor:"#e6c15c",backgroundColor:"#e6c15c33",borderWidth:2,pointBackgroundColor:"#e6c15c"},
       {label:B.name,data:vals.map(v=>v[1]),borderColor:"#2dd4bf",backgroundColor:"#2dd4bf33",borderWidth:2,pointBackgroundColor:"#2dd4bf"}]},
     options:{responsive:true,maintainAspectRatio:false,
       scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:"rgba(255,255,255,.08)"},angleLines:{color:"rgba(255,255,255,.08)"},pointLabels:{color:"#9aa4bd",font:{size:11}}}},
-      plugins:{legend:{labels:{color:"#9aa4bd",boxWidth:14}},tooltip:{...tt,callbacks:{label:x=>" "+x.dataset.label+": "+(x.parsed.r==null?"n/a":x.parsed.r+"/100")}}}}}));
+      plugins:{legend:{labels:{color:"#9aa4bd",boxWidth:14}},tooltip:{...tt,callbacks:{label:x=>{const raw=x.datasetIndex===0?rawsA[x.dataIndex]:rawsB[x.dataIndex];
+        return" "+x.dataset.label+": "+(x.parsed.r==null?"n/a":x.parsed.r+" /100")+(raw!=null&&isFinite(raw)?" · raw "+(+raw).toFixed(1):"");}}}}}));
   const[ga,gb]=await Promise.all([rawVal(A,"NY.GDP.MKTP.CD"),rawVal(B,"NY.GDP.MKTP.CD")]);
   if(s!==cmpSeq)return;
   cmpCharts.push(new Chart(document.getElementById("cmp-bars"),{type:"bar",
