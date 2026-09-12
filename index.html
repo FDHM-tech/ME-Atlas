@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Middle East atlas — working prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root { --b:#ddd; --tx:#1a1a1a; --mut:#666; --acc:#2563eb; --danger:#dc2626; --pur:#7c3aed; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--tx); display:flex; flex-direction:column; height:100vh; }
+  header { padding:10px 16px; border-bottom:1px solid var(--b); display:flex; align-items:baseline; gap:12px; }
+  header h1 { font-size:17px; margin:0; font-weight:600; }
+  header span { font-size:12px; color:var(--mut); }
+  main { flex:1; display:flex; min-height:0; }
+  aside { width:380px; border-right:1px solid var(--b); overflow-y:auto; padding:12px; }
+  #viz { flex:1; display:flex; flex-direction:column; min-width:0; }
+  #tabs { display:flex; gap:4px; padding:8px 12px; border-bottom:1px solid var(--b); }
+  #tabs button { font:inherit; font-size:13px; padding:6px 14px; border:1px solid var(--b); background:#fff; border-radius:8px; cursor:pointer; color:var(--mut); }
+  #tabs button.on { color:#fff; background:var(--tx); border-color:var(--tx); }
+  #map { flex:1; min-height:300px; }
+  #network { flex:1; display:flex; flex-direction:column; min-height:0; }
+  #netsvg { flex:1; width:100%; min-height:300px; }
+  #legend { display:flex; gap:14px; padding:8px 12px; font-size:12px; color:var(--mut); border-top:1px solid var(--b); flex-wrap:wrap; }
+  .lg { display:inline-flex; align-items:center; gap:5px; }
+  .lg i { width:16px; height:0; border-top:3px solid; display:inline-block; }
+  select { width:100%; font:inherit; padding:8px; border:1px solid var(--b); border-radius:8px; margin-bottom:12px; }
+  h2 { font-size:16px; margin:0 0 2px; }
+  .meta { font-size:12px; color:var(--mut); margin-bottom:10px; }
+  .chip { display:inline-block; font-size:11px; border:1px solid var(--b); border-radius:6px; padding:1px 7px; margin:0 4px 4px 0; color:var(--mut); }
+  .kpis { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .kpi { border:1px solid var(--b); border-radius:10px; padding:8px 10px; }
+  .kpi .v { font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .kpi .l { font-size:11px; color:var(--mut); }
+  .kpi .y { font-size:10px; color:#999; }
+  h3 { font-size:13px; margin:14px 0 6px; }
+  .photos { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .photos figure { margin:0; }
+  .photos img { width:100%; height:76px; object-fit:cover; border-radius:8px; display:block; background:#eee; }
+  .photos figcaption { font-size:10px; color:var(--mut); margin-top:2px; line-height:1.25; }
+  .photos a { color:inherit; }
+  .rel { display:flex; gap:8px; align-items:flex-start; border-bottom:1px solid #eee; padding:6px 0; font-size:12px; }
+  .badge { flex:0 0 auto; font-size:10px; padding:1px 6px; border-radius:5px; color:#fff; margin-top:1px; }
+  .b-trade{background:var(--acc);} .b-remit{background:#60a5fa;} .b-energy{background:var(--pur);}
+  .b-diplo{background:#9ca3af;} .b-conflict{background:var(--danger);}
+  .rel .n { color:var(--mut); }
+  footer { font-size:11px; color:var(--mut); padding:6px 16px; border-top:1px solid var(--b); }
+  .node { cursor:pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Middle East atlas</h1>
+  <span>prototype v0.1 · data: World Bank API · photos: Wikipedia</span>
+</header>
+<main>
+  <aside>
+    <select id="sel"></select>
+    <div id="profile"></div>
+  </aside>
+  <section id="viz">
+    <div id="tabs">
+      <button data-v="map" class="on">Map</button>
+      <button data-v="net">Relations network</button>
+    </div>
+    <div id="map"></div>
+    <div id="network" hidden>
+      <svg id="netsvg" viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="legend">
+        <span class="lg"><i style="border-color:var(--acc)"></i>trade</span>
+        <span class="lg"><i style="border-color:#60a5fa;border-top-style:dashed"></i>remittances &amp; aid</span>
+        <span class="lg"><i style="border-color:var(--pur)"></i>energy</span>
+        <span class="lg"><i style="border-color:#9ca3af;border-top-style:dotted"></i>diplomacy &amp; blocs</span>
+        <span class="lg"><i style="border-color:var(--danger);border-top-style:dashed"></i>tension &amp; conflict</span>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>Click a country on the map or network, or pick one from the list. All data loads live in your browser.</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ---------- data ---------- */
+const COUNTRIES = [
+ {iso2:"TR",iso3:"TUR",name:"Turkey",capital:"Ankara",lon:32.86,lat:39.93,blocs:[],photos:[{t:"Hagia Sophia",a:"Hagia Sophia"},{t:"Cappadocia",a:"Cappadocia"},{t:"Blue Mosque",a:"Sultan Ahmed Mosque"}]},
+ {iso2:"CY",iso3:"CYP",name:"Cyprus",capital:"Nicosia",lon:33.38,lat:35.19,blocs:["EU"],photos:[{t:"Nicosia",a:"Nicosia"},{t:"Paphos",a:"Paphos"},{t:"Troodos Mountains",a:"Troodos Mountains"}]},
+ {iso2:"SY",iso3:"SYR",name:"Syria",capital:"Damascus",lon:36.29,lat:33.51,blocs:["Arab League"],photos:[{t:"Palmyra",a:"Palmyra"},{t:"Umayyad Mosque",a:"Umayyad Mosque"},{t:"Citadel of Aleppo",a:"Citadel of Aleppo"}]},
+ {iso2:"LB",iso3:"LBN",name:"Lebanon",capital:"Beirut",lon:35.50,lat:33.89,blocs:["Arab League"],photos:[{t:"Baalbek",a:"Baalbek"},{t:"Jeita Grotto",a:"Jeita Grotto"},{t:"Beirut",a:"Beirut"}]},
+ {iso2:"IL",iso3:"ISR",name:"Israel",capital:"Jerusalem",lon:35.21,lat:31.77,blocs:[],photos:[{t:"Western Wall",a:"Western Wall"},{t:"Dead Sea",a:"Dead Sea"},{t:"Tel Aviv",a:"Tel Aviv"}]},
+ {iso2:"PS",iso3:"PSE",name:"Palestine",capital:"Ramallah",lon:35.20,lat:31.90,blocs:["Arab League"],photos:[{t:"Dome of the Rock",a:"Dome of the Rock"},{t:"Church of the Nativity",a:"Church of the Nativity"},{t:"Jerusalem",a:"Jerusalem"}]},
+ {iso2:"JO",iso3:"JOR",name:"Jordan",capital:"Amman",lon:35.93,lat:31.95,blocs:["Arab League"],photos:[{t:"Petra",a:"Petra"},{t:"Wadi Rum",a:"Wadi Rum"},{t:"Amman Citadel",a:"Amman Citadel"}]},
+ {iso2:"IQ",iso3:"IRQ",name:"Iraq",capital:"Baghdad",lon:44.36,lat:33.32,blocs:["Arab League","OPEC"],photos:[{t:"Baghdad",a:"Baghdad"},{t:"Erbil Citadel",a:"Erbil Citadel"},{t:"Great Mosque of Samarra",a:"Great Mosque of Samarra"}]},
+ {iso2:"IR",iso3:"IRN",name:"Iran",capital:"Tehran",lon:51.39,lat:35.69,blocs:["OPEC"],photos:[{t:"Persepolis",a:"Persepolis"},{t:"Naqsh-e Jahan Square",a:"Naqsh-e Jahan Square"},{t:"Azadi Tower",a:"Azadi Tower"}]},
+ {iso2:"KW",iso3:"KWT",name:"Kuwait",capital:"Kuwait City",lon:47.98,lat:29.37,blocs:["GCC","Arab League","OPEC"],photos:[{t:"Kuwait Towers",a:"Kuwait Towers"},{t:"Kuwait City",a:"Kuwait City"},{t:"Failaka Island",a:"Failaka Island"}]},
+ {iso2:"SA",iso3:"SAU",name:"Saudi Arabia",capital:"Riyadh",lon:46.68,lat:24.71,blocs:["GCC","Arab League","OPEC"],photos:[{t:"Kaaba, Mecca",a:"Kaaba"},{t:"Riyadh",a:"Riyadh"},{t:"Jeddah",a:"Jeddah"}]},
+ {iso2:"BH",iso3:"BHR",name:"Bahrain",capital:"Manama",lon:50.58,lat:26.23,blocs:["GCC","Arab League"],photos:[{t:"Qal'at al-Bahrain",a:"Qal'at al-Bahrain"},{t:"Bahrain World Trade Center",a:"Bahrain World Trade Center"},{t:"Manama",a:"Manama"}]},
+ {iso2:"QA",iso3:"QAT",name:"Qatar",capital:"Doha",lon:51.53,lat:25.29,blocs:["GCC","Arab League"],photos:[{t:"Souq Waqif",a:"Souq Waqif"},{t:"Museum of Islamic Art",a:"Museum of Islamic Art, Doha"},{t:"The Pearl-Qatar",a:"The Pearl-Qatar"}]},
+ {iso2:"AE",iso3:"ARE",name:"United Arab Emirates",capital:"Abu Dhabi",lon:54.38,lat:24.45,blocs:["GCC","Arab League","OPEC"],photos:[{t:"Burj Khalifa",a:"Burj Khalifa"},{t:"Sheikh Zayed Grand Mosque",a:"Sheikh Zayed Grand Mosque"},{t:"Dubai",a:"Dubai"}]},
+ {iso2:"OM",iso3:"OMN",name:"Oman",capital:"Muscat",lon:58.41,lat:23.59,blocs:["GCC","Arab League"],photos:[{t:"Sultan Qaboos Grand Mosque",a:"Sultan Qaboos Grand Mosque"},{t:"Muscat",a:"Muscat"},{t:"Jebel Shams",a:"Jebel Shams"}]},
+ {iso2:"YE",iso3:"YEM",name:"Yemen",capital:"Sana'a",lon:44.19,lat:15.35,blocs:["Arab League"],photos:[{t:"Sana'a",a:"Sanaa"},{t:"Shibam",a:"Shibam"},{t:"Socotra",a:"Socotra"}]},
+ {iso2:"EG",iso3:"EGY",name:"Egypt",capital:"Cairo",lon:31.24,lat:30.04,blocs:["Arab League","AU"],photos:[{t:"Pyramids of Giza",a:"Giza pyramid complex"},{t:"Cairo & the Nile",a:"Cairo"},{t:"Karnak Temple, Luxor",a:"Karnak"}]},
+];
+const EDGES = [
+ {a:"SA",b:"AE",type:"trade",note:"UAE is Saudi Arabia's largest GCC trade partner"},
+ {a:"SA",b:"QA",type:"diplo",note:"Fellow GCC members; borders reopened in 2021"},
+ {a:"SA",b:"EG",type:"remit",note:"~2.9M Egyptians work in Saudi Arabia; major deposits and aid"},
+ {a:"SA",b:"IQ",type:"energy",note:"Power-grid interconnection and energy deals"},
+ {a:"SA",b:"KW",type:"energy",note:"Linked via the GCC interconnection grid"},
+ {a:"SA",b:"BH",type:"energy",note:"King Fahd Causeway links the two economies"},
+ {a:"SA",b:"JO",type:"remit",note:"Gulf aid packages and Jordanian labor"},
+ {a:"IR",b:"IQ",type:"trade",note:"Iraq is Iran's largest non-oil export market"},
+ {a:"IR",b:"AE",type:"trade",note:"UAE-Iran non-oil trade in the billions of dollars"},
+ {a:"IR",b:"QA",type:"diplo",note:"Doha hosts a mediation channel to Tehran"},
+ {a:"IR",b:"LB",type:"diplo",note:"Long-standing Hezbollah alliance"},
+ {a:"TR",b:"IQ",type:"trade",note:"Iraq is among Turkey's top export markets"},
+ {a:"TR",b:"EG",type:"diplo",note:"Ambassadors restored 2023; $15 bn trade target"},
+ {a:"EG",b:"IL",type:"diplo",note:"1979 peace treaty; gas and trade deals"},
+ {a:"AE",b:"IL",type:"diplo",note:"Abraham Accords normalization since 2020"},
+ {a:"IL",b:"IR",type:"conflict",note:"Long-running shadow conflict"},
+ {a:"IQ",b:"KW",type:"trade",note:"Khor Abdullah trade corridor"},
+ {a:"CY",b:"TR",type:"conflict",note:"Island divided since 1974; ongoing dispute"},
+];
+const IND = [
+ ["NY.GDP.MKTP.CD","GDP","money"],["SP.POP.TOTL","Population","int"],
+ ["NY.GDP.PCAP.CD","GDP per capita","money"],["FP.CPI.TOTL.ZG","Inflation (CPI)","pct"],
+ ["SL.UEM.TOTL.ZS","Unemployment","pct"],["SP.DYN.LE00.IN","Life expectancy","yrs"],
+];
+
+/* ---------- helpers ---------- */
+const byIso = Object.fromEntries(COUNTRIES.map(c=>[c.iso2,c]));
+const cache = {};
+function fmt(ind,v){
+  if(v==null) return "n/a";
+  if(ind==="money"){
+    if(Math.abs(v)>=1e12) return "$"+(v/1e12).toFixed(2)+" tn";
+    if(Math.abs(v)>=1e9) return "$"+(v/1e9).toFixed(1)+" bn";
+    if(Math.abs(v)>=1e6) return "$"+(v/1e6).toFixed(1)+" m";
+    return "$"+Math.round(v).toLocaleString();
+  }
+  if(ind==="int") return Math.round(v).toLocaleString();
+  if(ind==="pct") return v.toFixed(1)+"%";
+  if(ind==="yrs") return v.toFixed(1)+" yrs";
+  return String(v);
+}
+async function wb(iso3,code){
+  const key=iso3+code;
+  if(cache[key]!==undefined) return cache[key];
+  try{
+    const r = await fetch(`https://api.worldbank.org/v2/country/${iso3}/indicator/${code}?format=json&per_page=8&date=2016:2026`);
+    const j = await r.json();
+    const d = (j[1]||[]).find(x=>x.value!=null);
+    cache[key] = d?{v:d.value,y:d.date}:null;
+  }catch(e){ cache[key]=null; }
+  return cache[key];
+}
+
+/* ---------- profile panel ---------- */
+async function renderProfile(iso){
+  const c = byIso[iso];
+  const prof = document.getElementById("profile");
+  prof.innerHTML = `
+    <h2>${c.name}</h2>
+    <div class="meta">Capital: ${c.capital}</div>
+    <div>${c.blocs.map(b=>`<span class="chip">${b}</span>`).join("")||'<span class="chip">no major bloc</span>'}</div>
+    <h3>Macroeconomics &amp; demographics</h3>
+    <div class="kpis">${IND.map(([code,label],i)=>`
+      <div class="kpi"><div class="v" id="k${i}">…</div><div class="l">${label}</div><div class="y" id="y${i}"></div></div>`).join("")}
+    </div>
+    <h3>Famous places</h3>
+    <div class="photos">${c.photos.map((p,i)=>`
+      <figure><img id="ph${i}" alt="${p.t}"><figcaption id="pc${i}">${p.t}</figcaption></figure>`).join("")}
+    </div>
+    <h3>Relations</h3>
+    <div id="rels">${EDGES.filter(e=>e.a===iso||e.b===iso).map(e=>{
+      const other = byIso[e.a===iso?e.b:e.a];
+      const lbl = {trade:"trade",remit:"remit / aid",energy:"energy",diplo:"diplomacy",conflict:"tension"}[e.type];
+      return `<div class="rel"><span class="badge b-${e.type}">${lbl}</span><div><b>${other.name}</b><div class="n">${e.note}</div></div></div>`;
+    }).join("")||'<div class="rel">No recorded ties yet.</div>'}</div>`;
+  IND.forEach(async([code],i)=>{
+    const r = await wb(c.iso3,code);
+    document.getElementById("k"+i).textContent = r?fmt(code==="NY.GDP.MKTP.CD"?"money":code==="SP.POP.TOTL"?"int":code==="NY.GDP.PCAP.CD"?"money":code==="FP.CPI.TOTL.ZG"?"pct":code==="SL.UEM.TOTL.ZS"?"pct":"yrs",r.v):"n/a";
+    document.getElementById("y"+i).textContent = r?("World Bank, "+r.y):"";
+  });
+  c.photos.forEach(async(p,i)=>{
+    try{
+      const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(p.a)}`);
+      const j = await r.json();
+      const img = document.getElementById("ph"+i), cap = document.getElementById("pc"+i);
+      if(j.thumbnail){ img.src = j.thumbnail.source.replace(/\/\d+px-/, "/640px-"); }
+      const url = j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page;
+      cap.innerHTML = `<a href="${url||"#"}" target="_blank" rel="noopener">${p.t} · photo via Wikipedia</a>`;
+    }catch(e){}
+  });
+}
+
+/* ---------- selector ---------- */
+const sel = document.getElementById("sel");
+COUNTRIES.forEach(c=>{ const o=document.createElement("option"); o.value=c.iso2; o.textContent=c.name; sel.appendChild(o); });
+
+/* ---------- map ---------- */
+const map = L.map("map",{worldCopyJump:true}).setView([28,45],4);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
+const markers = {};
+COUNTRIES.forEach(c=>{
+  const m = L.circleMarker([c.lat,c.lon],{radius:8,color:"#333",weight:1.5,fillColor:"#2563eb",fillOpacity:.7})
+    .addTo(map).bindTooltip(c.name).on("click",()=>select(c.iso2));
+  markers[c.iso2]=m;
+  wb(c.iso3,"SP.POP.TOTL").then(r=>{ if(r) m.setRadius(Math.min(38,4+Math.sqrt(r.v)/3000)); });
+});
+
+/* ---------- network ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById("netsvg");
+const px = lon => 20 + (lon-22)/(68-22)*760;
+const py = lat => 20 + (46-lat)/(46-10)*480;
+const TSTYLE = {
+  trade:{c:"#2563eb",w:2,d:""}, remit:{c:"#60a5fa",w:1.6,d:"7 5"},
+  energy:{c:"#7c3aed",w:2,d:""}, diplo:{c:"#9ca3af",w:1.6,d:"2 5"},
+  conflict:{c:"#dc2626",w:2,d:"6 4"},
+};
+const edgesEls = EDGES.map(e=>{
+  const A=byIso[e.a],B=byIso[e.b],s=TSTYLE[e.type];
+  const l=document.createElementNS(NS,"line");
+  l.setAttribute("x1",px(A.lon)); l.setAttribute("y1",py(A.lat));
+  l.setAttribute("x2",px(B.lon)); l.setAttribute("y2",py(B.lat));
+  l.setAttribute("stroke",s.c); l.setAttribute("stroke-width",s.w);
+  if(s.d) l.setAttribute("stroke-dasharray",s.d);
+  l.dataset.a=e.a; l.dataset.b=e.b;
+  svg.appendChild(l); return l;
+});
+const nodeEls = COUNTRIES.map(c=>{
+  const g=document.createElementNS(NS,"g"); g.classList.add("node"); g.dataset.iso=c.iso2;
+  const r=document.createElementNS(NS,"circle");
+  r.setAttribute("cx",px(c.lon)); r.setAttribute("cy",py(c.lat)); r.setAttribute("r",11);
+  r.setAttribute("fill","#fff"); r.setAttribute("stroke","#555"); r.setAttribute("stroke-width",1.2);
+  const t=document.createElementNS(NS,"text");
+  t.setAttribute("x",px(c.lon)); t.setAttribute("y",py(c.lat)+3.5);
+  t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","9"); t.setAttribute("fill","#333");
+  t.textContent=c.iso2;
+  const n=document.createElementNS(NS,"text");
+  n.setAttribute("x",px(c.lon)); n.setAttribute("y",py(c.lat)+24);
+  n.setAttribute("text-anchor","middle"); n.setAttribute("font-size","10.5"); n.setAttribute("fill","#666");
+  n.textContent=c.name.length>14?c.name.slice(0,13)+"…":c.name;
+  g.append(r,t,n); g.addEventListener("click",()=>select(c.iso2));
+  svg.appendChild(g); return g;
+});
+function highlightNet(iso){
+  edgesEls.forEach(l=>{
+    const hit = l.dataset.a===iso||l.dataset.b===iso;
+    l.style.opacity = hit?1:0.07;
+  });
+}
+
+/* ---------- selection ---------- */
+let current=null;
+function select(iso){
+  current=iso;
+  sel.value=iso;
+  renderProfile(iso);
+  Object.entries(markers).forEach(([k,m])=>m.setStyle({color:k===iso?"#111":"#333",weight:k===iso?3:1.5}));
+  highlightNet(iso);
+}
+sel.addEventListener("change",e=>select(e.target.value));
+
+/* ---------- tabs ---------- */
+document.getElementById("tabs").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
+  const isMap = b.dataset.v==="map";
+  document.getElementById("map").hidden=!isMap;
+  document.getElementById("network").hidden=isMap;
+  if(isMap) map.invalidateSize();
+});
+
+select("EG");
+</script>
+</body>
+</html>
