@@ -1,159 +1,143 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>أطلس الشرق الأوسط | اقتصاد وسكان وعلاقات</title>
+<title>Middle East Atlas — Economy · Demographics · Health · Relations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg:#070b14; --bg2:#0b1120; --panel:rgba(255,255,255,.035); --line:rgba(255,255,255,.09);
+  --bg:#070b14; --panel:rgba(255,255,255,.035); --line:rgba(255,255,255,.09);
   --tx:#eef1f8; --mut:#9aa4bd; --gold:#e6c15c; --gold2:#f4d98c; --teal:#2dd4bf;
   --danger:#f87171; --pur:#a78bfa; --blue:#60a5fa;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:"Tajawal",sans-serif;overflow-x:hidden}
-h1,h2,h3,h4{font-family:"Cairo",sans-serif;margin:0}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Inter",sans-serif;overflow-x:hidden}
+h1,h2,h3,h4{font-family:"Sora",sans-serif;margin:0}
 ::selection{background:var(--gold);color:#111}
 ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#232c44;border-radius:8px}::-webkit-scrollbar-track{background:var(--bg)}
 section{scroll-margin-top:70px}
-
-/* ---------- nav ---------- */
 nav{position:fixed;inset-inline:0;top:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;
-  padding:10px 28px;background:rgba(7,11,20,.72);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.brand{font-family:"Cairo";font-weight:900;font-size:19px;color:var(--gold);display:flex;align-items:center;gap:8px}
+  padding:10px 28px;background:rgba(7,11,20,.75);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{font-family:"Sora";font-weight:800;font-size:18px;color:var(--gold);display:flex;align-items:center;gap:8px}
 .brand svg{width:22px;height:22px}
-nav .links{display:flex;gap:4px}
-nav a{color:var(--mut);text-decoration:none;font-size:14px;padding:7px 13px;border-radius:8px;transition:.25s}
+nav .links{display:flex;gap:4px;align-items:center}
+nav a{color:var(--mut);text-decoration:none;font-size:13.5px;padding:7px 12px;border-radius:8px;transition:.25s}
 nav a:hover{color:var(--tx);background:rgba(255,255,255,.06)}
-
-/* ---------- hero ---------- */
-.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;
-  position:relative;padding:120px 20px 80px;overflow:hidden}
+#refresh{font:inherit;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:8px;border:1px solid var(--line);
+  background:rgba(230,193,92,.08);color:var(--gold2);cursor:pointer;transition:.25s}
+#refresh:hover{border-color:var(--gold);transform:translateY(-1px)}
+.hero{min-height:92vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;padding:120px 20px 70px;overflow:hidden}
 .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.35;animation:float 14s ease-in-out infinite}
-.orb.o1{width:480px;height:480px;background:#e6c15c22;top:-120px;inset-inline-start:-100px}
-.orb.o2{width:420px;height:420px;background:#2dd4bf1f;bottom:-140px;inset-inline-end:-80px;animation-delay:-6s}
-.orb.o3{width:300px;height:300px;background:#a78bfa1a;top:40%;inset-inline-start:55%;animation-delay:-3s}
+.orb.o1{width:480px;height:480px;background:#e6c15c22;top:-120px;left:-100px}
+.orb.o2{width:420px;height:420px;background:#2dd4bf1f;bottom:-140px;right:-80px;animation-delay:-6s}
+.orb.o3{width:300px;height:300px;background:#a78bfa1a;top:40%;left:55%;animation-delay:-3s}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-40px)}}
-.hero .kicker{letter-spacing:.35em;font-size:13px;color:var(--gold);margin-bottom:18px}
-.hero h1{font-size:clamp(42px,8vw,88px);font-weight:900;line-height:1.15;
+.hero .kicker{letter-spacing:.35em;font-size:12px;color:var(--gold);margin-bottom:18px;text-transform:uppercase}
+.hero h1{font-size:clamp(40px,7.5vw,80px);font-weight:800;line-height:1.12;
   background:linear-gradient(120deg,#fff 20%,var(--gold2) 55%,#fff 80%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p.sub{max-width:640px;color:var(--mut);font-size:17px;line-height:1.9;margin:18px auto 0}
-.hero .cta{margin-top:34px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-.btn{font-family:"Tajawal";font-weight:700;font-size:15px;padding:13px 30px;border-radius:12px;border:none;cursor:pointer;transition:.25s;text-decoration:none;display:inline-block}
+.hero p.sub{max-width:660px;color:var(--mut);font-size:16px;line-height:1.85;margin:18px auto 0}
+.hero .cta{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn{font-weight:600;font-size:14.5px;padding:13px 28px;border-radius:12px;border:none;cursor:pointer;transition:.25s;text-decoration:none;display:inline-block}
 .btn.gold{background:linear-gradient(135deg,var(--gold),#c79a2e);color:#191104}
 .btn.gold:hover{transform:translateY(-3px);box-shadow:0 12px 30px #e6c15c44}
 .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}
 .btn.ghost:hover{border-color:var(--gold);color:var(--gold)}
-.totals{display:flex;gap:44px;margin-top:64px;flex-wrap:wrap;justify-content:center}
+.totals{display:flex;gap:44px;margin-top:60px;flex-wrap:wrap;justify-content:center}
 .totals .t{text-align:center}
-.totals .n{font-family:"Cairo";font-size:clamp(26px,4vw,40px);font-weight:800;color:var(--gold2);font-variant-numeric:tabular-nums}
-.totals .l{font-size:13px;color:var(--mut);margin-top:2px}
-.scroll-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:var(--mut);font-size:12px;animation:bob 2s infinite}
-@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
-
-/* ---------- sections ---------- */
-.wrap{max-width:1180px;margin:0 auto;padding:90px 22px}
+.totals .n{font-family:"Sora";font-size:clamp(24px,3.6vw,36px);font-weight:700;color:var(--gold2);font-variant-numeric:tabular-nums}
+.totals .l{font-size:12.5px;color:var(--mut);margin-top:2px}
+.live{margin-top:22px;font-size:12px;color:var(--teal);display:flex;align-items:center;gap:7px}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--teal);animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.25}}
+.wrap{max-width:1200px;margin:0 auto;padding:90px 22px}
 .sec-head{text-align:center;margin-bottom:44px}
-.sec-head .kick{color:var(--gold);font-size:13px;letter-spacing:.3em}
-.sec-head h2{font-size:clamp(28px,4.5vw,44px);font-weight:800;margin-top:8px}
-.sec-head p{color:var(--mut);max-width:560px;margin:10px auto 0;line-height:1.8}
+.sec-head .kick{color:var(--gold);font-size:12px;letter-spacing:.3em;text-transform:uppercase}
+.sec-head h2{font-size:clamp(26px,4vw,40px);font-weight:700;margin-top:8px}
+.sec-head p{color:var(--mut);max-width:600px;margin:10px auto 0;line-height:1.8}
 .gold-line{width:64px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:18px auto 0;border-radius:3px}
-
-/* ---------- glass card ---------- */
 .glass{background:var(--panel);border:1px solid var(--line);border-radius:18px;backdrop-filter:blur(8px)}
-
-/* ---------- map section ---------- */
 .map-grid{display:grid;grid-template-columns:320px 1fr;gap:18px}
 @media(max-width:900px){.map-grid{grid-template-columns:1fr}}
-.search{width:100%;background:#0d1428;border:1px solid var(--line);border-radius:12px;color:var(--tx);
-  font-family:"Tajawal";font-size:14px;padding:11px 14px;outline:none;margin-bottom:12px}
+.search{width:100%;background:#0d1428;border:1px solid var(--line);border-radius:12px;color:var(--tx);font-size:14px;padding:11px 14px;outline:none;margin-bottom:12px;font-family:inherit}
 .search:focus{border-color:var(--gold)}
-.c-list{max-height:520px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:6px}
+.c-list{max-height:540px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:6px}
 .c-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:.2s}
 .c-item:hover{background:rgba(255,255,255,.05)}
 .c-item.on{background:rgba(230,193,92,.1);border-color:#e6c15c55}
 .c-item img{width:30px;height:20px;object-fit:cover;border-radius:4px}
+.c-item .hex{color:var(--gold);font-size:15px;width:30px;text-align:center}
 .c-item .nm{font-size:14px;font-weight:500}
-.c-item .pp{margin-inline-start:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
-#map{height:600px;border-radius:18px;border:1px solid var(--line);z-index:1}
+.c-item .pp{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+#map{height:620px;border-radius:18px;border:1px solid var(--line);z-index:1}
 @media(max-width:900px){#map{height:420px}}
-.leaflet-container{background:#0b1120;font-family:"Tajawal"}
-.leaflet-popup-content-wrapper{background:#111a30;color:var(--tx);border-radius:12px;border:1px solid var(--line)}
+.leaflet-container{background:#0b1120}
+.leaflet-popup-content-wrapper{background:#111a30;color:var(--tx);border-radius:12px;border:1px solid var(--line);font-family:inherit}
 .leaflet-popup-tip{background:#111a30}
 .leaflet-bar a{background:#111a30;color:var(--tx);border-color:var(--line)}
 .pulse{width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 #e6c15c88;animation:pl 2.2s infinite;cursor:pointer}
 @keyframes pl{70%{box-shadow:0 0 0 16px transparent}100%{box-shadow:0 0 0 0 transparent}}
-
-/* ---------- profile ---------- */
 .p-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:26px;margin-bottom:18px;position:relative;overflow:hidden}
-.p-head::after{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--gold),transparent)}
+.p-head::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--gold),transparent)}
 .p-head img.flag{width:76px;height:50px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
-.p-head h3{font-size:30px;font-weight:800}
-.p-head .cap{color:var(--mut);font-size:14px;margin-top:4px}
+.p-head h3{font-size:28px;font-weight:700}
+.p-head .cap{color:var(--mut);font-size:13.5px;margin-top:4px}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.chip{font-size:11.5px;padding:3px 10px;border-radius:20px;border:1px solid #e6c15c55;color:var(--gold2);background:rgba(230,193,92,.07)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
-.kpi{padding:16px;position:relative;overflow:hidden;transition:.25s}
+.chip{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #e6c15c55;color:var(--gold2);background:rgba(230,193,92,.07)}
+.grp{display:flex;align-items:center;justify-content:space-between;margin:26px 0 12px;flex-wrap:wrap;gap:8px}
+.grp h4{font-size:16px}
+.grp h4 span{font-size:11px;color:var(--mut);font-weight:400;margin-left:8px}
+.src{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px}
+.src select{font:inherit;font-size:12px;background:#0d1428;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:5px 8px;outline:none}
+.src select:focus{border-color:var(--gold)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{padding:14px 16px;transition:.25s}
 .kpi:hover{transform:translateY(-4px);border-color:#e6c15c44}
-.kpi .v{font-family:"Cairo";font-size:23px;font-weight:800;color:var(--gold2);font-variant-numeric:tabular-nums}
-.kpi .l{font-size:12.5px;color:var(--mut);margin-top:3px}
-.kpi .y{font-size:10.5px;color:#6b7490}
-.p-cols{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-bottom:18px}
+.kpi .v{font-family:"Sora";font-size:20px;font-weight:700;color:var(--gold2);font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12px;color:var(--mut);margin-top:3px}
+.kpi .y{font-size:10px;color:#6b7490}
+.p-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
 @media(max-width:900px){.p-cols{grid-template-columns:1fr}}
 .panel{padding:20px}
-.panel h4{font-size:16px;margin-bottom:14px;color:var(--tx)}
-.panel h4 span{color:var(--gold);font-size:12px;font-weight:400;margin-inline-start:8px}
-canvas.chart{max-height:260px}
-.demo-row{display:flex;justify-content:space-between;font-size:13.5px;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,.07)}
-.demo-row b{font-variant-numeric:tabular-nums;color:var(--gold2)}
-.stack{display:flex;height:14px;border-radius:8px;overflow:hidden;margin:10px 0 6px}
-.stack div{height:100%}
-.legend-mini{display:flex;gap:14px;font-size:11.5px;color:var(--mut);flex-wrap:wrap}
-.legend-mini i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-inline-end:5px;vertical-align:-1px}
+.panel h4{font-size:15px;margin-bottom:14px}
+.panel h4 span{color:var(--gold);font-size:11px;font-weight:400;margin-left:8px}
+.chartbox{position:relative;height:250px}
 .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:700px){.gallery{grid-template-columns:1fr}}
-.ph{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);aspect-ratio:4/3;background:#0d1428}
+.ph{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);aspect-ratio:4/3;background:#0d1428;margin:0}
 .ph img{width:100%;height:100%;object-fit:cover;transition:transform .6s;display:block}
 .ph:hover img{transform:scale(1.07)}
-.ph .cap{position:absolute;inset-inline:0;bottom:0;padding:26px 14px 12px;font-size:13px;
-  background:linear-gradient(transparent,#000d);display:flex;justify-content:space-between;align-items:flex-end;gap:6px}
+.ph .cap{position:absolute;inset-inline:0;bottom:0;padding:26px 14px 12px;font-size:13px;background:linear-gradient(transparent,#000d);display:flex;justify-content:space-between;align-items:flex-end;gap:6px}
 .ph .cap a{color:#fff;text-decoration:none}
 .ph .cap a:hover{color:var(--gold2)}
-.ph .src{font-size:10px;color:#ffffff88;white-space:nowrap}
+.ph .src{position:static;color:#ffffff88}
 .rels{display:flex;flex-direction:column;gap:8px}
 .rel{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--line);font-size:13.5px}
-.badge{flex:0 0 auto;font-size:10.5px;padding:2px 9px;border-radius:14px;color:#081018;font-weight:700;margin-top:2px}
+.badge{flex:0 0 auto;font-size:10.5px;padding:2px 9px;border-radius:14px;color:#081018;font-weight:600;margin-top:2px}
 .b-trade{background:var(--blue)} .b-remit{background:#93c5fd} .b-energy{background:var(--pur);color:#fff}
 .b-diplo{background:#9ca3af} .b-conflict{background:var(--danger);color:#fff}
 .rel .n{color:var(--mut);font-size:12px;margin-top:2px;line-height:1.6}
 .empty{padding:40px;text-align:center;color:var(--mut)}
-
-/* ---------- network ---------- */
 #netsvg{width:100%;height:auto;display:block}
 .net-wrap{position:relative}
-.net-tip{position:absolute;background:#111a30;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:5}
+.net-tip{position:absolute;background:#111a30;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:5;max-width:260px}
 .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:18px;font-size:12.5px;color:var(--mut)}
 .legend .lg{display:flex;align-items:center;gap:6px}
 .legend i{width:20px;height:0;border-top:3px solid;display:block;border-radius:2px}
-
-/* ---------- compare ---------- */
 .cmp-pick{display:flex;gap:12px;justify-content:center;margin-bottom:22px;flex-wrap:wrap}
-select.sel{background:#0d1428;border:1px solid var(--line);border-radius:12px;color:var(--tx);font-family:"Tajawal";font-size:14px;padding:11px 16px;min-width:190px;outline:none}
+select.sel{background:#0d1428;border:1px solid var(--line);border-radius:12px;color:var(--tx);font-size:14px;padding:11px 16px;min-width:200px;outline:none;font-family:inherit}
 select.sel:focus{border-color:var(--gold)}
-table.cmp{width:100%;border-collapse:collapse;font-size:14px}
-.cmp th,.cmp td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:center}
-.cmp th{font-family:"Cairo";color:var(--gold2);font-size:15px}
-.cmp td:first-child{color:var(--mut);text-align:start}
-.cmp .win{color:var(--gold2);font-weight:700}
-
+table.cmp{width:100%;border-collapse:collapse;font-size:13.5px}
+.cmp th,.cmp td{padding:11px 13px;border-bottom:1px solid var(--line);text-align:center}
+.cmp th{font-family:"Sora";color:var(--gold2);font-size:14px}
+.cmp td:first-child{color:var(--mut);text-align:left}
+.cmp .win{color:var(--gold2);font-weight:600}
 footer{border-top:1px solid var(--line);padding:34px 22px;text-align:center;color:var(--mut);font-size:12.5px;line-height:2}
 footer b{color:var(--gold2)}
-
 .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
 .reveal.in{opacity:1;transform:none}
 </style>
@@ -163,48 +147,49 @@ footer b{color:var(--gold2)}
 <nav>
   <div class="brand">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/></svg>
-    أطلس الشرق الأوسط
+    Middle East Atlas
   </div>
   <div class="links">
-    <a href="#map-sec">الخريطة</a>
-    <a href="#country-sec">الدول</a>
-    <a href="#net-sec">شبكة العلاقات</a>
-    <a href="#cmp-sec">المقارنة</a>
+    <a href="#map-sec">Map</a>
+    <a href="#country-sec">Profiles</a>
+    <a href="#net-sec">Relations</a>
+    <a href="#cmp-sec">Compare</a>
+    <button id="refresh">&#8635; Refresh data</button>
   </div>
 </nav>
 
-<!-- ================= HERO ================= -->
 <header class="hero">
   <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
-  <div class="kicker">اقتصاد · سكان · علاقات دولية</div>
-  <h1>أطلس الشرق الأوسط</h1>
-  <p class="sub">منصة تفاعلية تجمع المؤشرات الاقتصادية والديموغرافية لسبع عشرة دولة،
-  وترسم خيوط التجارة والطاقة والهجرة والديبلوماسية التي تربط المنطقة ببعضها — مع أشهر معالم كل بلد.</p>
+  <div class="kicker">Economy &middot; Demographics &middot; Health &middot; Relations</div>
+  <h1>Middle East Atlas</h1>
+  <p class="sub">Live macroeconomic, demographic and health indicators for 17 countries and 2 clusters
+  (Levant &amp; GCC), the trade, energy, migration and diplomacy ties that bind them, and the iconic
+  landmarks of each — with selectable data sources and continuously updated figures.</p>
   <div class="cta">
-    <a class="btn gold" href="#map-sec">استكشف الخريطة</a>
-    <a class="btn ghost" href="#net-sec">شبكة العلاقات</a>
+    <a class="btn gold" href="#map-sec">Explore the map</a>
+    <a class="btn ghost" href="#cmp-sec">Compare entities</a>
   </div>
   <div class="totals">
-    <div class="t"><div class="n" dir="ltr" id="tt-pop">…</div><div class="l">إجمالي السكان</div></div>
-    <div class="t"><div class="n" dir="ltr" id="tt-gdp">…</div><div class="l">إجمالي الناتج المحلي</div></div>
-    <div class="t"><div class="n">17</div><div class="l">دولة</div></div>
-    <div class="t"><div class="n">18</div><div class="l">علاقة ثنائية مسجلة</div></div>
+    <div class="t"><div class="n" id="tt-pop">…</div><div class="l">Total population</div></div>
+    <div class="t"><div class="n" id="tt-gdp">…</div><div class="l">Combined GDP</div></div>
+    <div class="t"><div class="n">17</div><div class="l">Countries</div></div>
+    <div class="t"><div class="n">+2</div><div class="l">Clusters (Levant &middot; GCC)</div></div>
+    <div class="t"><div class="n">18</div><div class="l">Bilateral ties</div></div>
   </div>
-  <div class="scroll-hint">مرّر للأسفل ↓</div>
+  <div class="live"><i></i><span id="stamp">connecting to live sources…</span></div>
 </header>
 
-<!-- ================= MAP ================= -->
 <section id="map-sec">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="kick">استكشاف</div>
-      <h2>الخريطة التفاعلية</h2>
-      <p>انقر أي نقطة ذهبية نابضة لعرض ملف الدولة الكامل بالاقتصاد والسكان والصور.</p>
+      <div class="kick">Explore</div>
+      <h2>Interactive map</h2>
+      <p>Click any golden pulse to open a full profile. Clusters are available in the list on the left.</p>
       <div class="gold-line"></div>
     </div>
     <div class="map-grid reveal">
       <div class="glass c-list" style="padding:14px">
-        <input class="search" id="search" placeholder="ابحث عن دولة…">
+        <input class="search" id="search" placeholder="Search country or cluster…">
         <div id="clist"></div>
       </div>
       <div id="map"></div>
@@ -212,48 +197,45 @@ footer b{color:var(--gold2)}
   </div>
 </section>
 
-<!-- ================= COUNTRY ================= -->
 <section id="country-sec">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="kick">ملف الدولة</div>
-      <h2 id="p-title">اختر دولة من الخريطة أو القائمة</h2>
+      <div class="kick">Entity profile</div>
+      <h2 id="p-title">Select an entity</h2>
       <div class="gold-line"></div>
     </div>
-    <div id="profile"><div class="glass empty">لم يتم اختيار دولة بعد — ابدأ من الخريطة أعلاه.</div></div>
+    <div id="profile"><div class="glass empty">Nothing selected yet — start from the map above.</div></div>
   </div>
 </section>
 
-<!-- ================= NETWORK ================= -->
 <section id="net-sec">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="kick">الجغرافيا السياسية</div>
-      <h2>شبكة العلاقات بين الدول</h2>
-      <p>خطوط التجارة والطاقة والهجرة والتحالفات والتوترات — انقر أي عقدة لإبراز علاقاتها وعرض ملفها.</p>
+      <div class="kick">Geopolitics</div>
+      <h2>Relationship network</h2>
+      <p>Trade, energy, migration, alliances and tensions. Click a node to highlight its ties and open its profile. Hover a line for details.</p>
       <div class="gold-line"></div>
     </div>
     <div class="glass net-wrap reveal" style="padding:22px">
       <svg id="netsvg" viewBox="0 0 800 500"></svg>
       <div class="net-tip" id="nettip"></div>
       <div class="legend">
-        <span class="lg"><i style="border-color:var(--blue)"></i>تجارة</span>
-        <span class="lg"><i style="border-color:#93c5fd;border-top-style:dashed"></i>هجرة وتحويلات</span>
-        <span class="lg"><i style="border-color:var(--pur)"></i>طاقة</span>
-        <span class="lg"><i style="border-color:#9ca3af;border-top-style:dotted"></i>دبلوماسية وتحالفات</span>
-        <span class="lg"><i style="border-color:var(--danger);border-top-style:dashed"></i>توتر وصراع</span>
+        <span class="lg"><i style="border-color:var(--blue)"></i>Trade</span>
+        <span class="lg"><i style="border-color:#93c5fd;border-top-style:dashed"></i>Migration &amp; remittances</span>
+        <span class="lg"><i style="border-color:var(--pur)"></i>Energy</span>
+        <span class="lg"><i style="border-color:#9ca3af;border-top-style:dotted"></i>Diplomacy &amp; blocs</span>
+        <span class="lg"><i style="border-color:var(--danger);border-top-style:dashed"></i>Tension &amp; conflict</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ================= COMPARE ================= -->
 <section id="cmp-sec">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div class="kick">وجهاً لوجه</div>
-      <h2>قارن بين دولتين</h2>
-      <p>اختر دولتين لمقارنة أهم المؤشرات جنباً إلى جنب — الرقم الأعلى يُعرّف باللون الذهبي.</p>
+      <div class="kick">Head to head</div>
+      <h2>Compare two entities</h2>
+      <p>Countries or clusters, side by side across every indicator. The higher value is highlighted in gold.</p>
       <div class="gold-line"></div>
     </div>
     <div class="reveal">
@@ -269,67 +251,142 @@ footer b{color:var(--gold2)}
 </section>
 
 <footer>
-  <b>أطلس الشرق الأوسط</b> — نموذج أولي تجريبي<br>
-  البيانات: البنك الدولي والأمم المتحدة (تحديثات سنوية، بعض المؤشرات غير متاحة لبعض الدول) ·
-  الصور: ويكيميديا كومنز عبر ويكيبيديا مع نسبة المصدر ·
-  المساحات ومؤشر التنمية والعملات: مرجعية تقريبية
+  <b>Middle East Atlas</b> — live-data prototype<br>
+  Sources: World Bank API &middot; WHO Global Health Observatory &middot; Wikimedia Commons (attributed photos) &middot; Reference figures: areas, currencies, HDI<br>
+  Figures update automatically on load and on demand via the refresh button. Missing values are shown as &ldquo;&mdash;&rdquo;.
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-/* ================= DATA ================= */
+/* ==================== DATA ==================== */
 const COUNTRIES=[
-{iso2:"TR",iso3:"TUR",name:"تركيا",capital:"أنقرة",lon:32.86,lat:39.93,blocs:["حلف الناتو","مرشحة للاتحاد الأوروبي"],currency:"الليرة التركية",area:"783,562",phone:"+90",hdi:"0.855",medAge:"34",fert:"1.6",photos:[{t:"آيا صوفيا",a:"Hagia Sophia"},{t:"كابادوكيا",a:"Cappadocia"},{t:"الجامع الأزرق",a:"Sultan Ahmed Mosque"}]},
-{iso2:"CY",iso3:"CYP",name:"قبرص",capital:"نيقوسيا",lon:33.38,lat:35.19,blocs:["الاتحاد الأوروبي","دول الكومنولث"],currency:"اليورو",area:"9,251",phone:"+357",hdi:"0.907",medAge:"37",fert:"1.3",photos:[{t:"نيقوسيا القديمة",a:"Nicosia"},{t:"بافوس الأثرية",a:"Paphos"},{t:"جبال ترودوس",a:"Troodos Mountains"}]},
-{iso2:"SY",iso3:"SYR",name:"سوريا",capital:"دمشق",lon:36.29,lat:33.51,blocs:["جامعة الدول العربية"],currency:"الليرة السورية",area:"185,180",phone:"+963",hdi:"0.557",medAge:"24",fert:"2.7",photos:[{t:"تدمر",a:"Palmyra"},{t:"الجامع الأموي",a:"Umayyad Mosque"},{t:"قلعة حلب",a:"Citadel of Aleppo"}]},
-{iso2:"LB",iso3:"LBN",name:"لبنان",capital:"بيروت",lon:35.50,lat:33.89,blocs:["جامعة الدول العربية"],currency:"الليرة اللبنانية",area:"10,452",phone:"+961",hdi:"0.723",medAge:"30",fert:"2.0",photos:[{t:"بعلبك",a:"Baalbek"},{t:"مغارة جعita",a:"Jeita Grotto"},{t:"كورنيش بيروت",a:"Beirut"}]},
-{iso2:"IL",iso3:"ISR",name:"إسرائيل",capital:"القدس",lon:35.21,lat:31.77,blocs:["منظمة التعاون الاقتصادي"],currency:"الشيكل الجديد",area:"22,072",phone:"+972",hdi:"0.915",medAge:"30",fert:"2.9",photos:[{t:"حائط البراق",a:"Western Wall"},{t:"البحر الميت",a:"Dead Sea"},{t:"تل أبيب",a:"Tel Aviv"}]},
-{iso2:"PS",iso3:"PSE",name:"فلسطين",capital:"القدس الشرقية / رام الله",lon:35.20,lat:31.90,blocs:["جامعة الدول العربية"],currency:"الشيكل / الدينار الأردني",area:"6,020",phone:"+970",hdi:"0.715",medAge:"21",fert:"3.3",photos:[{t:"قبة الصخرة",a:"Dome of the Rock"},{t:"كنيسة المهد",a:"Church of the Nativity"},{t:"القدس القديمة",a:"Jerusalem"}]},
-{iso2:"JO",iso3:"JOR",name:"الأردن",capital:"عمّان",lon:35.93,lat:31.95,blocs:["جامعة الدول العربية"],currency:"الدينار الأردني",area:"89,342",phone:"+962",hdi:"0.736",medAge:"24",fert:"2.6",photos:[{t:"البتراء",a:"Petra"},{t:"وادي رم",a:"Wadi Rum"},{t:"جبل القلعة — عمّان",a:"Amman Citadel"}]},
-{iso2:"IQ",iso3:"IRQ",name:"العراق",capital:"بغداد",lon:44.36,lat:33.32,blocs:["جامعة الدول العربية","أوبك"],currency:"الدينار العراقي",area:"438,317",phone:"+964",hdi:"0.686",medAge:"21",fert:"3.4",photos:[{t:"بغداد",a:"Baghdad"},{t:"قلعة أربيل",a:"Erbil Citadel"},{t:"جامع سامراء الكبير",a:"Great Mosque of Samarra"}]},
-{iso2:"IR",iso3:"IRN",name:"إيران",capital:"طهران",lon:51.39,lat:35.69,blocs:["أوبك"],currency:"الريال الإيراني",area:"1,648,195",phone:"+98",hdi:"0.780",medAge:"33",fert:"1.7",photos:[{t:"تخت جمشيد (برسيبوليس)",a:"Persepolis"},{t:"ساحة نقش جهان",a:"Naqsh-e Jahan Square"},{t:"برج آزادي",a:"Azadi Tower"}]},
-{iso2:"KW",iso3:"KWT",name:"الكويت",capital:"مدينة الكويت",lon:47.98,lat:29.37,blocs:["مجلس التعاون","جامعة الدول العربية","أوبك"],currency:"الدينار الكويتي",area:"17,818",phone:"+965",hdi:"0.847",medAge:"37",fert:"1.5",photos:[{t:"أبراج الكويت",a:"Kuwait Towers"},{t:"مدينة الكويت",a:"Kuwait City"},{t:"جزيرة فيلكا",a:"Failaka Island"}]},
-{iso2:"SA",iso3:"SAU",name:"السعودية",capital:"الرياض",lon:46.68,lat:24.71,blocs:["مجلس التعاون","جامعة الدول العربية","أوبك"],currency:"الريال السعودي",area:"2,149,690",phone:"+966",hdi:"0.875",medAge:"31",fert:"2.4",photos:[{t:"الكعبة المشرفة — مكة",a:"Kaaba"},{t:"الرياض",a:"Riyadh"},{t:"جدة التاريخية",a:"Jeddah"}]},
-{iso2:"BH",iso3:"BHR",name:"البحرين",capital:"المنامة",lon:50.58,lat:26.23,blocs:["مجلس التعاون","جامعة الدول العربية"],currency:"الدينار البحريني",area:"786",phone:"+973",hdi:"0.888",medAge:"33",fert:"1.8",photos:[{t:"قلعة البحرين",a:"Qal'at al-Bahrain"},{t:"مركز التجارة العالمي",a:"Bahrain World Trade Center"},{t:"المنامة",a:"Manama"}]},
-{iso2:"QA",iso3:"QAT",name:"قطر",capital:"الدوحة",lon:51.53,lat:25.29,blocs:["مجلس التعاون","جامعة الدول العربية"],currency:"الريال القطري",area:"11,586",phone:"+974",hdi:"0.855",medAge:"33",fert:"1.8",photos:[{t:"سوق واقف",a:"Souq Waqif"},{t:"متحف الفن الإسلامي",a:"Museum of Islamic Art, Doha"},{t:"اللؤلؤة — الدوحة",a:"The Pearl-Qatar"}]},
-{iso2:"AE",iso3:"ARE",name:"الإمارات",capital:"أبوظبي",lon:54.38,lat:24.45,blocs:["مجلس التعاون","جامعة الدول العربية","أوبك"],currency:"الدرهم الإماراتي",area:"83,600",phone:"+971",hdi:"0.937",medAge:"33",fert:"1.5",photos:[{t:"برج خليفة",a:"Burj Khalifa"},{t:"جامع الشيخ زايد",a:"Sheikh Zayed Grand Mosque"},{t:"دبي",a:"Dubai"}]},
-{iso2:"OM",iso3:"OMN",name:"عُمان",capital:"مسقط",lon:58.41,lat:23.59,blocs:["مجلس التعاون","جامعة الدول العربية"],currency:"الريال العماني",area:"309,500",phone:"+968",hdi:"0.819",medAge:"31",fert:"2.6",photos:[{t:"جامع السلطان قابوس",a:"Sultan Qaboos Grand Mosque"},{t:"مسقط",a:"Muscat"},{t:"جبل شمس",a:"Jebel Shams"}]},
-{iso2:"YE",iso3:"YEM",name:"اليمن",capital:"صنعاء",lon:44.19,lat:15.35,blocs:["جامعة الدول العربية"],currency:"الريال اليمني",area:"555,000",phone:"+967",hdi:"0.455",medAge:"20",fert:"3.8",photos:[{t:"صنعاء القديمة",a:"Sanaa"},{t:"شبام — حضرموت",a:"Shibam"},{t:"جزيرة سقطرى",a:"Socotra"}]},
-{iso2:"EG",iso3:"EGY",name:"مصر",capital:"القاهرة",lon:31.24,lat:30.04,blocs:["جامعة الدول العربية","الاتحاد الأفريقي"],currency:"الجنيه المصري",area:"1,010,408",phone:"+20",hdi:"0.728",medAge:"25",fert:"2.9",photos:[{t:"أهرامات الجيزة",a:"Giza pyramid complex"},{t:"القاهرة والنيل",a:"Cairo"},{t:"معبد الكرنك — الأقصر",a:"Karnak"}]},
+{iso2:"TR",iso3:"TUR",name:"Turkey",capital:"Ankara",lon:32.86,lat:39.93,blocs:["NATO","EU candidate"],currency:"Turkish lira",area:"783,562",phone:"+90",hdi:"0.855",medAge:"34",fert:"1.6",photos:[{t:"Hagia Sophia",a:"Hagia Sophia"},{t:"Cappadocia",a:"Cappadocia"},{t:"Blue Mosque",a:"Sultan Ahmed Mosque"}]},
+{iso2:"CY",iso3:"CYP",name:"Cyprus",capital:"Nicosia",lon:33.38,lat:35.19,blocs:["EU","Commonwealth"],currency:"Euro",area:"9,251",phone:"+357",hdi:"0.907",medAge:"37",fert:"1.3",photos:[{t:"Old Nicosia",a:"Nicosia"},{t:"Paphos",a:"Paphos"},{t:"Troodos Mountains",a:"Troodos Mountains"}]},
+{iso2:"SY",iso3:"SYR",name:"Syria",capital:"Damascus",lon:36.29,lat:33.51,blocs:["Arab League"],currency:"Syrian pound",area:"185,180",phone:"+963",hdi:"0.557",medAge:"24",fert:"2.7",photos:[{t:"Palmyra",a:"Palmyra"},{t:"Umayyad Mosque",a:"Umayyad Mosque"},{t:"Citadel of Aleppo",a:"Citadel of Aleppo"}]},
+{iso2:"LB",iso3:"LBN",name:"Lebanon",capital:"Beirut",lon:35.50,lat:33.89,blocs:["Arab League"],currency:"Lebanese pound",area:"10,452",phone:"+961",hdi:"0.723",medAge:"30",fert:"2.0",photos:[{t:"Baalbek",a:"Baalbek"},{t:"Jeita Grotto",a:"Jeita Grotto"},{t:"Beirut Corniche",a:"Beirut"}]},
+{iso2:"IL",iso3:"ISR",name:"Israel",capital:"Jerusalem",lon:35.21,lat:31.77,blocs:["OECD"],currency:"New shekel",area:"22,072",phone:"+972",hdi:"0.915",medAge:"30",fert:"2.9",photos:[{t:"Western Wall",a:"Western Wall"},{t:"Dead Sea",a:"Dead Sea"},{t:"Tel Aviv",a:"Tel Aviv"}]},
+{iso2:"PS",iso3:"PSE",name:"Palestine",capital:"East Jerusalem / Ramallah",lon:35.20,lat:31.90,blocs:["Arab League"],currency:"Shekel / Jordanian dinar",area:"6,020",phone:"+970",hdi:"0.715",medAge:"21",fert:"3.3",photos:[{t:"Dome of the Rock",a:"Dome of the Rock"},{t:"Church of the Nativity",a:"Church of the Nativity"},{t:"Old Jerusalem",a:"Jerusalem"}]},
+{iso2:"JO",iso3:"JOR",name:"Jordan",capital:"Amman",lon:35.93,lat:31.95,blocs:["Arab League"],currency:"Jordanian dinar",area:"89,342",phone:"+962",hdi:"0.736",medAge:"24",fert:"2.6",photos:[{t:"Petra",a:"Petra"},{t:"Wadi Rum",a:"Wadi Rum"},{t:"Amman Citadel",a:"Amman Citadel"}]},
+{iso2:"IQ",iso3:"IRQ",name:"Iraq",capital:"Baghdad",lon:44.36,lat:33.32,blocs:["Arab League","OPEC"],currency:"Iraqi dinar",area:"438,317",phone:"+964",hdi:"0.686",medAge:"21",fert:"3.4",photos:[{t:"Baghdad",a:"Baghdad"},{t:"Erbil Citadel",a:"Erbil Citadel"},{t:"Great Mosque of Samarra",a:"Great Mosque of Samarra"}]},
+{iso2:"IR",iso3:"IRN",name:"Iran",capital:"Tehran",lon:51.39,lat:35.69,blocs:["OPEC"],currency:"Iranian rial",area:"1,648,195",phone:"+98",hdi:"0.780",medAge:"33",fert:"1.7",photos:[{t:"Persepolis",a:"Persepolis"},{t:"Naqsh-e Jahan Square",a:"Naqsh-e Jahan Square"},{t:"Azadi Tower",a:"Azadi Tower"}]},
+{iso2:"KW",iso3:"KWT",name:"Kuwait",capital:"Kuwait City",lon:47.98,lat:29.37,blocs:["GCC","Arab League","OPEC"],currency:"Kuwaiti dinar",area:"17,818",phone:"+965",hdi:"0.847",medAge:"37",fert:"1.5",photos:[{t:"Kuwait Towers",a:"Kuwait Towers"},{t:"Kuwait City",a:"Kuwait City"},{t:"Failaka Island",a:"Failaka Island"}]},
+{iso2:"SA",iso3:"SAU",name:"Saudi Arabia",capital:"Riyadh",lon:46.68,lat:24.71,blocs:["GCC","Arab League","OPEC"],currency:"Saudi riyal",area:"2,149,690",phone:"+966",hdi:"0.875",medAge:"31",fert:"2.4",photos:[{t:"The Kaaba, Mecca",a:"Kaaba"},{t:"Riyadh",a:"Riyadh"},{t:"Historic Jeddah",a:"Jeddah"}]},
+{iso2:"BH",iso3:"BHR",name:"Bahrain",capital:"Manama",lon:50.58,lat:26.23,blocs:["GCC","Arab League"],currency:"Bahraini dinar",area:"786",phone:"+973",hdi:"0.888",medAge:"33",fert:"1.8",photos:[{t:"Bahrain Fort",a:"Qal'at al-Bahrain"},{t:"World Trade Center",a:"Bahrain World Trade Center"},{t:"Manama",a:"Manama"}]},
+{iso2:"QA",iso3:"QAT",name:"Qatar",capital:"Doha",lon:51.53,lat:25.29,blocs:["GCC","Arab League"],currency:"Qatari riyal",area:"11,586",phone:"+974",hdi:"0.855",medAge:"33",fert:"1.8",photos:[{t:"Souq Waqif",a:"Souq Waqif"},{t:"Museum of Islamic Art",a:"Museum of Islamic Art, Doha"},{t:"The Pearl-Qatar",a:"The Pearl-Qatar"}]},
+{iso2:"AE",iso3:"ARE",name:"United Arab Emirates",capital:"Abu Dhabi",lon:54.38,lat:24.45,blocs:["GCC","Arab League","OPEC"],currency:"UAE dirham",area:"83,600",phone:"+971",hdi:"0.937",medAge:"33",fert:"1.5",photos:[{t:"Burj Khalifa",a:"Burj Khalifa"},{t:"Sheikh Zayed Grand Mosque",a:"Sheikh Zayed Grand Mosque"},{t:"Dubai",a:"Dubai"}]},
+{iso2:"OM",iso3:"OMN",name:"Oman",capital:"Muscat",lon:58.41,lat:23.59,blocs:["GCC","Arab League"],currency:"Omani rial",area:"309,500",phone:"+968",hdi:"0.819",medAge:"31",fert:"2.6",photos:[{t:"Sultan Qaboos Grand Mosque",a:"Sultan Qaboos Grand Mosque"},{t:"Muscat",a:"Muscat"},{t:"Jebel Shams",a:"Jebel Shams"}]},
+{iso2:"YE",iso3:"YEM",name:"Yemen",capital:"Sana'a",lon:44.19,lat:15.35,blocs:["Arab League"],currency:"Yemeni rial",area:"555,000",phone:"+967",hdi:"0.455",medAge:"20",fert:"3.8",photos:[{t:"Old Sana'a",a:"Sanaa"},{t:"Shibam, Hadhramaut",a:"Shibam"},{t:"Socotra",a:"Socotra"}]},
+{iso2:"EG",iso3:"EGY",name:"Egypt",capital:"Cairo",lon:31.24,lat:30.04,blocs:["Arab League","African Union"],currency:"Egyptian pound",area:"1,010,408",phone:"+20",hdi:"0.728",medAge:"25",fert:"2.9",photos:[{t:"Pyramids of Giza",a:"Giza pyramid complex"},{t:"Cairo & the Nile",a:"Cairo"},{t:"Karnak Temple, Luxor",a:"Karnak"}]},
 ];
-const EDGES=[
-{a:"SA",b:"AE",type:"trade",note:"الإمارات أكبر شريك تجاري خليجي للسعودية"},
-{a:"SA",b:"QA",type:"diplo",note:"شريكان في مجلس التعاون؛ فُتحت الحدود عام 2021"},
-{a:"SA",b:"EG",type:"remit",note:"نحو 2.9 مليون مصري يعملون في السعودية وتحويلات وودائع كبيرة"},
-{a:"SA",b:"IQ",type:"energy",note:"ربط شبكات الكهرباء واتفاقيات طاقة"},
-{a:"SA",b:"KW",type:"energy",note:"مربوطان بشبكة الربط الخليجية المشتركة"},
-{a:"SA",b:"BH",type:"energy",note:"جسر الملك فهد يربط اقتصاد البلدين"},
-{a:"SA",b:"JO",type:"remit",note:"حزم مساعدات خليجية وعمالة أردنية"},
-{a:"IR",b:"IQ",type:"trade",note:"العراق أكبر سوق للصادرات غير النفطية الإيرانية"},
-{a:"IR",b:"AE",type:"trade",note:"تجارة غير نفطية بمليارات الدولارات عبر دبي"},
-{a:"IR",b:"QA",type:"diplo",note:"الدوحة قناة وساطة رئيسية مع طهران"},
-{a:"IR",b:"LB",type:"diplo",note:"تحالف قديم مع حزب الله"},
-{a:"TR",b:"IQ",type:"trade",note:"العراق من أكبر أسواق الصادرات التركية"},
-{a:"TR",b:"EG",type:"diplo",note:"تبادل السفراء 2023 وهدف تجارة 15 مليار دولار"},
-{a:"EG",b:"IL",type:"diplo",note:"معاهدة السلام 1979 وصفقات غاز وتجارة"},
-{a:"AE",b:"IL",type:"diplo",note:"تطبيع العلاقات عبر اتفاقيات إبراهيم 2020"},
-{a:"IL",b:"IR",type:"conflict",note:"صراع ظل ممتد منذ عقود"},
-{a:"IQ",b:"KW",type:"trade",note:"ممر خور عبد الله التجاري"},
-{a:"CY",b:"TR",type:"conflict",note:"جزيرة مقسمة منذ 1974 ونزاع قائم"},
+const CLUSTERS=[
+{id:"LEV",name:"Levant (cluster)",short:"Levant",members:["LB","SY","JO","PS"],
+ capitals:"Beirut · Damascus · Amman · Ramallah",currency:"4 currencies",area:"111,014",phone:"—",hdi:"0.681 (avg)",medAge:"25 (avg)",fert:"2.9 (avg)",blocs:["Arab League"],
+ photos:[{t:"Baalbek, Lebanon",a:"Baalbek"},{t:"Petra, Jordan",a:"Petra"},{t:"Dome of the Rock, Palestine",a:"Dome of the Rock"}]},
+{id:"GCC",name:"GCC — Kuwait · Qatar · Bahrain · Oman (cluster)",short:"GCC (KW·QA·BH·OM)",members:["KW","QA","BH","OM"],
+ capitals:"Kuwait City · Doha · Manama · Muscat",currency:"4 currencies",area:"349,690",phone:"—",hdi:"0.852 (avg)",medAge:"34 (avg)",fert:"1.7 (avg)",blocs:["GCC","Arab League"],
+ photos:[{t:"Kuwait Towers, Kuwait",a:"Kuwait Towers"},{t:"Souq Waqif, Qatar",a:"Souq Waqif"},{t:"Bahrain Fort, Bahrain",a:"Qal'at al-Bahrain"}]},
 ];
-const IND=[
-["NY.GDP.MKTP.CD","الناتج المحلي الإجمالي","money"],["NY.GDP.PCAP.CD","نصيب الفرد من الناتج","money"],
-["SP.POP.TOTL","عدد السكان","int"],["SP.POP.GROW","نمو السكان سنوياً","pct"],
-["FP.CPI.TOTL.ZG","التضخم (مؤشر الأسعار)","pct"],["SL.UEM.TOTL.ZS","البطالة","pct"],
-["SP.DYN.LE00.IN","متوسط العمر المتوقع","yrs"],["SP.URB.TOTL.IN.ZS","نسبة سكان المدن","pct"],
-];
+const ALL=[...CLUSTERS.map(c=>({...c,isCluster:true})),...COUNTRIES];
+const byId=Object.fromEntries(ALL.map(e=>[e.isCluster?e.id:e.iso2,e]));
 const byIso=Object.fromEntries(COUNTRIES.map(c=>[c.iso2,c]));
+
+const EDGES=[
+{a:"SA",b:"AE",type:"trade",note:"UAE is Saudi Arabia's largest GCC trade partner"},
+{a:"SA",b:"QA",type:"diplo",note:"Fellow GCC members; borders reopened in 2021"},
+{a:"SA",b:"EG",type:"remit",note:"~2.9M Egyptians work in Saudi Arabia; major deposits and aid"},
+{a:"SA",b:"IQ",type:"energy",note:"Power-grid interconnection and energy deals"},
+{a:"SA",b:"KW",type:"energy",note:"Linked via the GCC interconnection grid"},
+{a:"SA",b:"BH",type:"energy",note:"King Fahd Causeway links the two economies"},
+{a:"SA",b:"JO",type:"remit",note:"Gulf aid packages and Jordanian labor"},
+{a:"IR",b:"IQ",type:"trade",note:"Iraq is Iran's largest non-oil export market"},
+{a:"IR",b:"AE",type:"trade",note:"Billions in non-oil trade via Dubai"},
+{a:"IR",b:"QA",type:"diplo",note:"Doha hosts a mediation channel to Tehran"},
+{a:"IR",b:"LB",type:"diplo",note:"Long-standing Hezbollah alliance"},
+{a:"TR",b:"IQ",type:"trade",note:"Iraq is among Turkey's top export markets"},
+{a:"TR",b:"EG",type:"diplo",note:"Ambassadors restored 2023; $15 bn trade target"},
+{a:"EG",b:"IL",type:"diplo",note:"1979 peace treaty; gas and trade deals"},
+{a:"AE",b:"IL",type:"diplo",note:"Abraham Accords normalization since 2020"},
+{a:"IL",b:"IR",type:"conflict",note:"Long-running shadow conflict"},
+{a:"IQ",b:"KW",type:"trade",note:"Khor Abdullah trade corridor"},
+{a:"CY",b:"TR",type:"conflict",note:"Island divided since 1974; ongoing dispute"},
+];
+
+/* Indicator registry: [wbCode, label, kind] — whoCode optional */
+const IND={
+macro:[["NY.GDP.MKTP.CD","GDP (US$)","money"],["NY.GDP.PCAP.CD","GDP per capita (US$)","money"],["FP.CPI.TOTL.ZG","Inflation (CPI)","pct"],["SL.UEM.TOTL.ZS","Unemployment","pct"],["NE.EXP.GNFS.ZS","Exports, % of GDP","pct"],["NY.GDP.MKTP.KD.ZG","GDP growth","pct"]],
+demo:[["SP.POP.TOTL","Population","int"],["SP.POP.GROW","Population growth","pct"],["SP.URB.TOTL.IN.ZS","Urban population, %","pct"],["SP.POP.0014.TO.ZS","Ages 0–14, %","pct"],["SP.POP.1564.TO.ZS","Ages 15–64, %","pct"],["SP.POP.65UP.TO.ZS","Ages 65+, %","pct"],["SP.DYN.LE00.IN","Life expectancy (yrs)","yrs",,,"WHOSIS_000001"],["SP.DYN.IMRT.IN","Infant mortality (per 1,000)","num1",,,"WHOSIS_000015"]],
+health:[["SH.XPD.CHEX.GD.ZS","Health spending, % of GDP","pct"],["SH.XPD.CHEX.PC.CD","Health spending per capita (US$)","money"],["SH.XPD.GHED.CH.ZS","Public share of health spending, %","pct"],["SH.XPD.PVTD.CH.ZS","Private share of health spending, %","pct"],["SH.MED.BEDS.ZS","Hospital beds (per 1,000)","num1",,,"WHS_4"],["SH.MED.PHYS.ZS","Physicians (per 1,000)","num1",,,"WHS_5"],["SP.DYN.LE00.IN","Life expectancy (yrs)","yrs",,,"WHOSIS_000001"],["SP.DYN.IMRT.IN","Infant mortality (per 1,000)","num1",,,"WHOSIS_000015"]],
+};
+const SOURCES={wb:"World Bank",who:"WHO"};
+const state={src:{macro:"wb",demo:"wb",health:"wb"}};
 const cache={};
 
-/* ================= HELPERS ================= */
+/* ==================== FETCHERS ==================== */
+async function fetchWB(code,iso3,series){
+  const key="wb:"+iso3+":"+code+(series?":s":"");
+  if(cache[key]!==undefined)return cache[key];
+  try{
+    const url=`https://api.worldbank.org/v2/country/${iso3}/indicator/${code}?format=json&per_page=${series?80:8}&date=${series?"2000:2026":"2016:2026"}`;
+    const r=await fetch(url);const j=await r.json();
+    if(series){cache[key]=(j[1]||[]).filter(x=>x.value!=null).sort((p,q)=>+p.date-+q.date);return cache[key];}
+    const d=(j[1]||[]).find(x=>x.value!=null);
+    cache[key]=d?{v:+d.value,y:d.date}:null;
+  }catch(e){cache[key]=series?[]:null;}
+  return cache[key];
+}
+async function fetchWHO(code,iso3){
+  const key="who:"+iso3+":"+code;
+  if(cache[key]!==undefined)return cache[key];
+  try{
+    const r=await fetch(`https://ghoapi.azureedge.net/api/${code}?$filter=SpatialDimension eq '${iso3}'&$orderby=TimeDimension desc&$top=1`);
+    const j=await r.json();const d=j.value&&j.value[0];
+    cache[key]=d?{v:+d.Value,y:String(d.TimeDimension)}:null;
+  }catch(e){cache[key]=null;}
+  return cache[key];
+}
+function srcFn(src){return src==="who"?fetchWHO:fetchWB;}
+function indDef(group,key){return IND[group].find(d=>d[0]===key);}
+function indWHO(group,key){const d=indDef(group,key);return d&&d[5];}
+const SUM_KEYS=new Set(["SP.POP.TOTL","NY.GDP.MKTP.CD"]);
+
+async function getVal(ent,group,key){
+  const def=indDef(group,key);const src=state.src[group];
+  if(!ent.isCluster){
+    if(src==="who"){const w=indWHO(group,key);return w?fetchWHO(w,ent.iso3):null;}
+    return fetchWB(key,ent.iso3);
+  }
+  /* cluster aggregation */
+  const code=src==="who"?indWHO(group,key):key;
+  if(!code)return null;
+  const parts=await Promise.all(ent.members.map(m=>srcFn(src)(code,byIso[m].iso3)));
+  const ok=parts.filter(p=>p&&isFinite(p.v));
+  if(!ok.length)return null;
+  if(SUM_KEYS.has(key))
+    return{v:ok.reduce((s,p)=>s+p.v,0),y:ok.map(p=>p.y).sort()[0]+" (mixed)"};
+  /* population-weighted average where possible */
+  const pops=await Promise.all(ent.members.map(m=>fetchWB("SP.POP.TOTL",byIso[m].iso3)));
+  let wsum=0,wv=0,anyW=false;
+  ok.forEach(p=>{const i=parts.indexOf(p);const w=pops[i]&&pops[i].v>0?pops[i].v:0;
+    if(w>0){wv+=p.v*w;wsum+=w;anyW=true;}});
+  const v=anyW&&wsum>0?wv/wsum:ok.reduce((s,p)=>s+p.v,0)/ok.length;
+  return{v,y:ok.map(p=>p.y).sort()[0]+" (mixed)"};
+}
+async function getSeries(ent,key,scale){
+  if(!ent.isCluster){const s=await fetchWB(key,ent.iso3,true);return{labels:s.map(x=>x.date),data:s.map(x=>+(x.value*scale).toFixed(2))};}
+  const all=await Promise.all(ent.members.map(m=>fetchWB(key,byIso[m].iso3,true)));
+  const years={};
+  all.forEach(s=>s.forEach(x=>{(years[x.date]=years[x.date]||[]).push(x.value);}));
+  const labels=Object.keys(years).sort();
+  const data=labels.map(y=>{
+    const vs=years[y];
+    const v=SUM_KEYS.has(key)?vs.reduce((s,x)=>s+x,0):vs.reduce((s,x)=>s+x,0)/vs.length;
+    return+(v*scale).toFixed(2);});
+  return{labels,data};
+}
+
+/* ==================== FORMAT ==================== */
 function fmt(kind,v){
-  v=Number(v);
-  if(!isFinite(v))return"—";
+  v=Number(v);if(!isFinite(v))return"—";
   if(kind==="money"){const a=Math.abs(v);
     if(a>=1e12)return"$"+(v/1e12).toFixed(2)+" tn";
     if(a>=1e9)return"$"+(v/1e9).toFixed(1)+" bn";
@@ -338,18 +395,8 @@ function fmt(kind,v){
   if(kind==="int")return Math.round(v).toLocaleString("en-US");
   if(kind==="pct")return v.toFixed(1)+"%";
   if(kind==="yrs")return v.toFixed(1)+" yrs";
+  if(kind==="num1")return v.toFixed(1);
   return String(v);
-}
-async function wb(iso3,code,n){
-  const key=iso3+code+(n||"");if(cache[key]!==undefined)return cache[key];
-  try{
-    const r=await fetch(`https://api.worldbank.org/v2/country/${iso3}/indicator/${code}?format=json&per_page=${n||8}&date=${n?"2000:2026":"2016:2026"}`);
-    const j=await r.json();
-    if(n){cache[key]=(j[1]||[]).filter(x=>x.value!=null).sort((p,q)=>p.date-q.date);return cache[key];}
-    const d=(j[1]||[]).find(x=>x.value!=null);
-    cache[key]=d?{v:d.value,y:d.date}:null;
-  }catch(e){cache[key]=n?[]:null;}
-  return cache[key];
 }
 function animate(el,target,fn,dur){
   if(!isFinite(Number(target))){el.textContent="—";return;}
@@ -358,115 +405,177 @@ function animate(el,target,fn,dur){
     el.textContent=fn(target*e);if(p<1)requestAnimationFrame(step);})(t0);
 }
 
-/* ================= HERO TOTALS ================= */
-(async()=>{
+/* ==================== LIVE STAMP / REFRESH ==================== */
+function stamp(msg){
+  const d=new Date();
+  document.getElementById("stamp").textContent=(msg||"Live data updated")+" · "+d.toLocaleTimeString("en-US");
+}
+document.getElementById("refresh").addEventListener("click",async()=>{
+  for(const k in cache)delete cache[k];
+  stamp("Refreshing from live sources…");
+  await Promise.allSettled([loadTotals(),renderCompare(),renderProfile(current,false)]);
+  renderList(document.getElementById("search").value.trim());
+  stamp();
+});
+setInterval(async()=>{
+  for(const k in cache)delete cache[k];
+  await Promise.allSettled([loadTotals(),renderCompare(),renderProfile(current,false)]);
+  stamp("Auto-refreshed");
+},15*60*1000);
+
+/* ==================== HERO TOTALS ==================== */
+async function loadTotals(){
   let pop=0,gdp=0;
   await Promise.allSettled(COUNTRIES.map(async c=>{
-    const[p,g]=await Promise.all([wb(c.iso3,"SP.POP.TOTL"),wb(c.iso3,"NY.GDP.MKTP.CD")]);
+    const[p,g]=await Promise.all([fetchWB("SP.POP.TOTL",c.iso3),fetchWB("NY.GDP.MKTP.CD",c.iso3)]);
     if(p)pop+=p.v;if(g)gdp+=g.v;
   }));
   animate(document.getElementById("tt-pop"),pop,v=>Math.round(v).toLocaleString("en-US"));
   animate(document.getElementById("tt-gdp"),gdp,v=>"$"+(v/1e12).toFixed(2)+" tn");
-})();
+}
 
-/* ================= COUNTRY LIST ================= */
+/* ==================== LIST ==================== */
 const clist=document.getElementById("clist");
 function renderList(q){
   clist.innerHTML="";
-  COUNTRIES.filter(c=>!q||c.name.includes(q)).forEach(c=>{
-    const d=document.createElement("div");d.className="c-item"+(c.iso2===current?" on":"");
-    d.innerHTML=`<img src="https://flagcdn.com/w80/${c.iso2.toLowerCase()}.png" alt=""><span class="nm">${c.name}</span><span class="pp" dir="ltr" id="pp-${c.iso2}"></span>`;
-    d.onclick=()=>select(c.iso2);clist.appendChild(d);
-    wb(c.iso3,"SP.POP.TOTL").then(r=>{const e=document.getElementById("pp-"+c.iso2);if(e&&r&&isFinite(r.v))e.textContent=(r.v/1e6).toFixed(1)+" m";});
+  ALL.filter(e=>!q||e.name.toLowerCase().includes(q.toLowerCase())).forEach(e=>{
+    const id=e.isCluster?e.id:e.iso2;
+    const d=document.createElement("div");d.className="c-item"+(id===current?" on":"");
+    d.innerHTML=(e.isCluster
+      ?`<span class="hex">&#x2B21;</span><span class="nm">${e.short}</span>`
+      :`<img src="https://flagcdn.com/w80/${e.iso2.toLowerCase()}.png" alt=""><span class="nm">${e.name}</span>`)
+      +`<span class="pp" id="pp-${id}"></span>`;
+    d.onclick=()=>select(id);
+    clist.appendChild(d);
+    if(!e.isCluster)fetchWB("SP.POP.TOTL",e.iso3).then(r=>{const el=document.getElementById("pp-"+id);if(el&&r&&isFinite(r.v))el.textContent=(r.v/1e6).toFixed(1)+" m";});
   });
 }
 document.getElementById("search").addEventListener("input",e=>renderList(e.target.value.trim()));
 
-/* ================= MAP ================= */
+/* ==================== MAP ==================== */
 const map=L.map("map",{scrollWheelZoom:false}).setView([27,44],4);
 L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"© OpenStreetMap © CARTO",subdomains:"abcd"}).addTo(map);
-const markers={};
 COUNTRIES.forEach(c=>{
-  const m=L.marker([c.lat,c.lon],{icon:L.divIcon({className:"",html:"<div class='pulse'></div>",iconSize:[14,14]})})
+  L.marker([c.lat,c.lon],{icon:L.divIcon({className:"",html:"<div class='pulse'></div>",iconSize:[14,14]})})
     .addTo(map).bindTooltip(c.name).on("click",()=>select(c.iso2));
-  markers[c.iso2]=m;
 });
 
-/* ================= PROFILE ================= */
-let gdpChart=null;
-async function renderProfile(iso,scroll){
-  const c=byIso[iso];
-  document.getElementById("p-title").textContent=c.name;
+/* ==================== PROFILE ==================== */
+let charts=[],reqSeq=0;
+function killCharts(){charts.forEach(c=>c.destroy());charts=[];}
+const gridCSS="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px";
+async function renderProfile(id,scroll){
+  const ent=byId[id];const mySeq=++reqSeq;
+  document.getElementById("p-title").textContent=ent.name;
+  killCharts();
   const prof=document.getElementById("profile");
+  const headMeta=ent.isCluster
+    ?`Members: ${ent.members.map(m=>byIso[m].name).join(" · ")} · Blocs: ${ent.blocs.join(", ")}`
+    :`Capital: ${ent.capital} · Currency: ${ent.currency} · Area: ${ent.area} km² · Dial: ${ent.phone}`;
   prof.innerHTML=`
   <div class="glass p-head reveal in">
-    <img class="flag" src="https://flagcdn.com/w160/${c.iso2.toLowerCase()}.png" alt="علم ${c.name}">
+    ${ent.isCluster?'<div style="font-size:40px;color:var(--gold)">&#x2B21;</div>':'<img class="flag" src="https://flagcdn.com/w160/'+ent.iso2.toLowerCase()+'.png" alt="">'}
     <div>
-      <h3>${c.name}</h3>
-      <div class="cap">العاصمة: ${c.capital} · العملة: ${c.currency} · المساحة: ${c.area} كم² · الاتصال: ${c.phone}</div>
-      <div class="chips">${c.blocs.map(b=>`<span class="chip">${b}</span>`).join("")}</div>
+      <h3>${ent.name}</h3>
+      <div class="cap">${headMeta}</div>
+      ${ent.isCluster?"":`<div class="chips">${ent.blocs.map(b=>`<span class="chip">${b}</span>`).join("")}</div>`}
     </div>
   </div>
-  <div class="kpis">${IND.map(([code,label],i)=>`
-    <div class="glass kpi"><div class="v" dir="ltr" id="k${i}">…</div><div class="l">${label}</div><div class="y" id="y${i}"></div></div>`).join("")}
+  ${["macro","demo","health"].map(g=>`
+  <div class="grp">
+    <h4>${{macro:"Macroeconomics",demo:"Demographics",health:"Health"}[g]} <span id="cnt-${g}"></span></h4>
+    ${g==="macro"
+      ?'<span class="src">Source: World Bank</span>'
+      :`<label class="src">Source
+      <select data-grp="${g}">
+        ${Object.entries(SOURCES).map(([k,n])=>`<option value="${k}" ${state.src[g]===k?"selected":""}>${n}</option>`).join("")}
+      </select></label>`}
   </div>
+  <div class="kpis" style="${gridCSS}">${IND[g].map((d,i)=>`
+    <div class="glass kpi"><div class="v" id="${g}-${i}">…</div><div class="l">${d[1]}</div><div class="y" id="${g}y-${i}"></div></div>`).join("")}
+  </div>`).join("")}
   <div class="p-cols">
-    <div class="glass panel"><h4>مسار الناتج المحلي <span>2000 – الآن · مليار دولار</span></h4><canvas class="chart" id="gdpchart"></canvas></div>
-    <div class="glass panel"><h4>الهيكل الديموغرافي</h4>
-      <div id="demo"></div>
+    <div class="glass panel"><h4>GDP trajectory <span>2000–present · US$ bn</span></h4><div class="chartbox"><canvas id="c-gdp"></canvas></div></div>
+    <div class="glass panel"><h4>Health spending trajectory <span>% of GDP · US$ per capita</span></h4><div class="chartbox"><canvas id="c-health"></canvas></div></div>
+    <div class="glass panel"><h4>Health financing mix <span>latest year · % of current spending</span></h4><div class="chartbox"><canvas id="c-mix"></canvas></div></div>
+    <div class="glass panel"><h4>Demographics &amp; capacity <span>age structure · medical capacity</span></h4><div class="chartbox"><canvas id="c-demo"></canvas></div></div>
+  </div>
+  <div class="glass panel" style="margin-top:16px"><h4>Signature landmarks <span>3 photos · via Wikimedia Commons</span></h4>
+    <div class="gallery">${ent.photos.map((p,i)=>`
+      <figure class="ph"><img id="ph${i}" alt="${p.t}"><figcaption class="cap"><span id="pc${i}">${p.t}</span><span class="src">Wikimedia</span></figcaption></figure>`).join("")}
     </div>
   </div>
-  <div class="glass panel" style="margin-bottom:18px"><h4>أشهر معالم ${c.name} <span>3 صور · عبر ويكيميديا كومنز</span></h4>
-    <div class="gallery">${c.photos.map((p,i)=>`
-      <figure class="ph" style="margin:0"><img id="ph${i}" alt="${p.t}"><figcaption class="cap"><span id="pc${i}">${p.t}</span><span class="src">Wikimedia</span></figcaption></figure>`).join("")}
-    </div>
-  </div>
-  <div class="glass panel"><h4>علاقات ${c.name} الإقليمية</h4><div class="rels" id="rels"></div></div>`;
+  <div class="glass panel" style="margin-top:16px"><h4>${ent.isCluster?"Intra-cluster relations":"Regional relations"}</h4><div class="rels" id="rels"></div></div>`;
   if(scroll)document.getElementById("country-sec").scrollIntoView({behavior:"smooth"});
 
-  IND.forEach(async([code,label,kind],i)=>{
-    const r=await wb(c.iso3,code);
-    const el=document.getElementById("k"+i);
-    if(r)animate(el,r.v,v=>fmt(kind,v));else el.textContent="غير متاح";
-    document.getElementById("y"+i).textContent=r?("البنك الدولي · "+r.y):"";
-  });
+  /* source selectors */
+  prof.querySelectorAll("select[data-grp]").forEach(sel=>sel.addEventListener("change",e=>{
+    state.src[e.target.dataset.grp]=e.target.value;renderProfile(id,false);
+  }));
 
-  /* GDP chart */
-  const series=await wb(c.iso3,"NY.GDP.MKTP.CD",60);
-  const labels=series.map(x=>x.date),data=series.map(x=>+(x.value/1e9).toFixed(1));
-  if(gdpChart)gdpChart.destroy();
-  gdpChart=new Chart(document.getElementById("gdpchart"),{type:"line",
-    data:{labels,datasets:[{data,borderColor:"#e6c15c",borderWidth:2.5,pointRadius:0,pointHoverRadius:5,
-      pointHoverBackgroundColor:"#e6c15c",tension:.35,fill:true,
-      backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,260);
-        g.addColorStop(0,"#e6c15c44");g.addColorStop(1,"#e6c15c00");return g;}}]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
-      plugins:{legend:{display:false},tooltip:{rtl:true,callbacks:{label:x=>" $"+x.parsed.y+" bn"}}},
-      scales:{x:{ticks:{color:"#6b7490",maxTicksLimit:8},grid:{display:false}},
-              y:{ticks:{color:"#6b7490"},grid:{color:"rgba(255,255,255,.05)"}}}}});
-
-  /* demographics */
-  const[age0,age1,age2]=await Promise.all([wb(c.iso3,"SP.POP.0014.TO.ZS"),wb(c.iso3,"SP.POP.1564.TO.ZS"),wb(c.iso3,"SP.POP.65UP.TO.ZS")]);
-  let stack="";
-  if(age0&&age1&&age2){
-    const a=age0.v,b=age1.v,d=age2.v;
-    stack=`<div class="stack">
-      <div style="width:${a}%;background:#2dd4bf" title="أقل من 15"></div>
-      <div style="width:${b}%;background:#e6c15c" title="15–64"></div>
-      <div style="width:${d}%;background:#a78bfa" title="أكثر من 65"></div></div>
-    <div class="legend-mini">
-      <span><i style="background:#2dd4bf"></i>أقل من 15: ${a.toFixed(0)}%</span>
-      <span><i style="background:#e6c15c"></i>15–64: ${b.toFixed(0)}%</span>
-      <span><i style="background:#a78bfa"></i>أكثر من 65: ${d.toFixed(0)}%</span>
-    </div>`;
+  /* KPIs */
+  for(const g of["macro","demo","health"]){
+    let n=0;
+    for(let i=0;i<IND[g].length;i++){
+      const[key,label,kind]=IND[g][i];
+      getVal(ent,g,key).then(r=>{
+        if(mySeq!==reqSeq)return;
+        const el=document.getElementById(`${g}-${i}`);
+        if(r&&isFinite(r.v)){animate(el,r.v,v=>fmt(kind,v));n++;}else el.textContent="—";
+        document.getElementById(`${g}y-${i}`).textContent=r&&r.y?r.y:"";
+        document.getElementById("cnt-"+g).textContent=(state.src[g]==="who"?"· via WHO":"· via World Bank");
+      });
+    }
   }
-  document.getElementById("demo").innerHTML=stack+`
-    <div class="demo-row"><span>العمر الوسيط</span><b>${c.medAge} سنة</b></div>
-    <div class="demo-row"><span>معدل الخصوبة</span><b>${c.fert} طفل / امرأة</b></div>
-    <div class="demo-row"><span>مؤشر التنمية البشرية</span><b>${c.hdi}</b></div>`;
+
+  /* charts */
+  const mk=(canvas,cfg)=>charts.push(new Chart(document.getElementById(canvas),cfg));
+  const baseScales={x:{ticks:{color:"#6b7490",maxTicksLimit:8},grid:{display:false}},
+                    y:{ticks:{color:"#6b7490"},grid:{color:"rgba(255,255,255,.05)"}}};
+  const tt={backgroundColor:"#111a30",borderColor:"rgba(255,255,255,.1)",borderWidth:1,titleColor:"#f4d98c",bodyColor:"#eef1f8"};
+
+  const gdp=await getSeries(ent,"NY.GDP.MKTP.CD",1e-9);
+  if(mySeq!==reqSeq)return;
+  mk("c-gdp",{type:"line",data:{labels:gdp.labels,datasets:[{data:gdp.data,borderColor:"#e6c15c",borderWidth:2.5,pointRadius:0,pointHoverRadius:5,tension:.35,fill:true,
+    backgroundColor:c=>{const g=c.chart.ctx.createLinearGradient(0,0,0,250);g.addColorStop(0,"#e6c15c44");g.addColorStop(1,"#e6c15c00");return g;}}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:x=>" $"+x.parsed.y+" bn"}}},scales:baseScales}});
+
+  const[hpc,hgdp]=await Promise.all([getSeries(ent,"SH.XPD.CHEX.GD.ZS",1),getSeries(ent,"SH.XPD.CHEX.PC.CD",1)]);
+  if(mySeq!==reqSeq)return;
+  mk("c-health",{type:"line",data:{labels:hpc.labels,datasets:[
+      {label:"% of GDP",data:hpc.data,borderColor:"#2dd4bf",borderWidth:2.2,pointRadius:0,tension:.35,yAxisID:"y"},
+      {label:"US$ per capita",data:hgdp.data,borderColor:"#a78bfa",borderWidth:2.2,pointRadius:0,tension:.35,yAxisID:"y1",borderDash:[6,4]}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{labels:{color:"#9aa4bd",boxWidth:14}},tooltip:tt},
+      scales:{...baseScales,y:{...baseScales.y,position:"left",title:{display:true,text:"% of GDP",color:"#2dd4bf"}},
+        y1:{position:"right",ticks:{color:"#8b7bd8"},grid:{display:false},title:{display:true,text:"US$ per capita",color:"#a78bfa"}}}}});
+
+  const[pub,pvt]=await Promise.all([getVal(ent,"health","SH.XPD.GHED.CH.ZS"),getVal(ent,"health","SH.XPD.PVTD.CH.ZS")]);
+  if(mySeq!==reqSeq)return;
+  mk("c-mix",{type:"doughnut",
+    data:{labels:["Public","Private","External/other"],datasets:[{data:[pub?pub.v:null,pvt?pvt.v:null,
+      pub&&pvt?Math.max(0,100-pub.v-pvt.v):null],
+      backgroundColor:["#2dd4bf","#a78bfa","#3a4560"],borderColor:"#0b1120",borderWidth:3,hoverOffset:8}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"58%",
+      plugins:{legend:{position:"bottom",labels:{color:"#9aa4bd",boxWidth:14,padding:14}},
+      tooltip:{...tt,callbacks:{label:x=>" "+x.label+": "+(x.parsed==null?"—":x.parsed.toFixed(1)+"%")}}}}});
+
+  const[a0,a1,a2,beds,phys]=await Promise.all([
+    getVal(ent,"demo","SP.POP.0014.TO.ZS"),getVal(ent,"demo","SP.POP.1564.TO.ZS"),getVal(ent,"demo","SP.POP.65UP.TO.ZS"),
+    getVal(ent,"health","SH.MED.BEDS.ZS"),getVal(ent,"health","SH.MED.PHYS.ZS")]);
+  if(mySeq!==reqSeq)return;
+  mk("c-demo",{type:"bar",
+    data:{labels:["Ages 0–14 %","Ages 15–64 %","Ages 65+ %","Beds /1,000","Doctors /1,000"],
+      datasets:[{data:[a0?a0.v:null,a1?a1.v:null,a2?a2.v:null,beds?beds.v:null,phys?phys.v:null],
+        backgroundColor:["#2dd4bfcc","#e6c15ccc","#a78bfacc","#60a5facc","#f4d98ccc"],
+        borderRadius:8,maxBarThickness:52}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:x=>" "+(x.parsed.x==null?"—":x.parsed.x.toFixed(1))}}},
+      scales:{x:{...baseScales.x,grid:{color:"rgba(255,255,255,.05)"}},y:{ticks:{color:"#9aa4bd"},grid:{display:false}}}}});
 
   /* photos */
-  c.photos.forEach(async(p,i)=>{
+  ent.photos.forEach(async(p,i)=>{
     const img=document.getElementById("ph"+i),cap=document.getElementById("pc"+i);
     const fail=()=>{img.style.display="none";cap.textContent=p.t;};
     try{
@@ -483,15 +592,18 @@ async function renderProfile(iso,scroll){
   });
 
   /* relations */
-  const rels=EDGES.filter(e=>e.a===iso||e.b===iso);
+  const rels=ent.isCluster
+    ?EDGES.filter(e=>ent.members.includes(e.a)&&ent.members.includes(e.b))
+    :EDGES.filter(e=>e.a===id||e.b===id);
   document.getElementById("rels").innerHTML=rels.map(e=>{
-    const o=byIso[e.a===iso?e.b:e.a];
-    const lbl={trade:"تجارة",remit:"هجرة وتحويلات",energy:"طاقة",diplo:"دبلوماسية",conflict:"توتر"}[e.type];
-    return`<div class="rel"><span class="badge b-${e.type}">${lbl}</span><div><b style="cursor:pointer" onclick="select('${o.iso2}')">${o.name}</b><div class="n">${e.note}</div></div></div>`;
-  }).join("")||`<div class="empty">لا توجد علاقات مسجلة بعد.</div>`;
+    const o=byIso[e.a===id?e.b:(ent.isCluster?e.a:e.b)];
+    const otherId=ent.isCluster?e.a:id===e.a?e.b:e.a;
+    const lbl={trade:"Trade",remit:"Migration & aid",energy:"Energy",diplo:"Diplomacy",conflict:"Tension"}[e.type];
+    return`<div class="rel"><span class="badge b-${e.type}">${lbl}</span><div><b style="cursor:pointer" onclick="select('${otherId}')">${byIso[otherId].name}</b><div class="n">${e.note}</div></div></div>`;
+  }).join("")||`<div class="empty">No recorded ties yet.</div>`;
 }
 
-/* ================= NETWORK ================= */
+/* ==================== NETWORK ==================== */
 const NS="http://www.w3.org/2000/svg";
 const svg=document.getElementById("netsvg"),tip=document.getElementById("nettip");
 {const defs=document.createElementNS(NS,"defs");
@@ -501,7 +613,7 @@ const svg=document.getElementById("netsvg"),tip=document.getElementById("nettip"
  rg.append(s1,s2);defs.append(rg);
  const bg=document.createElementNS(NS,"rect");bg.setAttribute("width","800");bg.setAttribute("height","500");bg.setAttribute("fill","url(#ng)");bg.setAttribute("rx","14");
  svg.append(defs,bg);}
-const px=lon=>20+(lon-22)/(68-22)*760, py=lat=>15+(46-lat)/(46-10)*460;
+const px=lon=>20+(lon-22)/(68-22)*760,py=lat=>15+(46-lat)/(46-10)*460;
 const TS={trade:{c:"#60a5fa",w:2,d:""},remit:{c:"#93c5fd",w:1.6,d:"7 5"},
   energy:{c:"#a78bfa",w:2,d:""},diplo:{c:"#9ca3af",w:1.6,d:"2 5"},conflict:{c:"#f87171",w:2,d:"6 4"}};
 const edgeEls=EDGES.map(e=>{
@@ -510,17 +622,13 @@ const edgeEls=EDGES.map(e=>{
   l.setAttribute("x1",px(A.lon));l.setAttribute("y1",py(A.lat));
   l.setAttribute("x2",px(B.lon));l.setAttribute("y2",py(B.lat));
   l.setAttribute("stroke",s.c);l.setAttribute("stroke-width",s.w);l.setAttribute("stroke-linecap","round");
-  l.setAttribute("opacity",.8);
-  l.style.filter="drop-shadow(0 0 5px "+s.c+")";
+  l.setAttribute("opacity",.8);l.style.filter="drop-shadow(0 0 5px "+s.c+")";
   if(s.d)l.setAttribute("stroke-dasharray",s.d);
   l.dataset.a=e.a;l.dataset.b=e.b;
   const txt=`${A.name} ↔ ${B.name} — ${e.note}`;
   l.addEventListener("mousemove",ev=>{
     const rc=svg.getBoundingClientRect();
-    tip.style.opacity=1;
-    tip.style.insetInlineStart=(ev.clientX-rc.left+14)+"px";
-    tip.style.top=(ev.clientY-rc.top-14)+"px";
-    tip.textContent=txt;});
+    tip.style.opacity=1;tip.style.left=(ev.clientX-rc.left+14)+"px";tip.style.top=(ev.clientY-rc.top-14)+"px";tip.textContent=txt;});
   l.addEventListener("mouseleave",()=>tip.style.opacity=0);
   svg.appendChild(l);return l;
 });
@@ -539,10 +647,10 @@ COUNTRIES.forEach(c=>{
   const n=document.createElementNS(NS,"text");
   n.setAttribute("x",px(c.lon));n.setAttribute("y",py(c.lat)+30);
   n.setAttribute("text-anchor","middle");n.setAttribute("font-size","11");n.setAttribute("fill","#c3cbdd");
-  n.textContent=c.name;
+  n.textContent=c.name.length>14?c.name.slice(0,13)+"…":c.name;
   g.append(ring,r,t,n);g.addEventListener("click",()=>select(c.iso2));
   g.addEventListener("mouseenter",()=>ring.setAttribute("stroke","#e6c15c"));
-  g.addEventListener("mouseleave",()=>ring.setAttribute("stroke","#e6c15c33"));
+  g.addEventListener("mouseleave",()=>ring.setAttribute("stroke","#e6c15c55"));
   svg.appendChild(g);
 });
 function highlightNet(iso){
@@ -554,50 +662,52 @@ function highlightNet(iso){
   });
 }
 
-/* ================= SELECT ================= */
+/* ==================== SELECT ==================== */
 let current=null;
-function select(iso,user){
-  current=iso;
+function select(id,user){
+  current=id;
   renderList(document.getElementById("search").value.trim());
-  renderProfile(iso,user!==false);
-  highlightNet(iso);
+  renderProfile(id,user!==false);
+  if(byId[id]&&!byId[id].isCluster)highlightNet(id);
 }
 window.select=select;
 
-/* ================= COMPARE ================= */
+/* ==================== COMPARE ==================== */
 const selA=document.getElementById("cmp-a"),selB=document.getElementById("cmp-b");
-COUNTRIES.forEach(c=>{
-  selA.add(new Option(c.name,c.iso2));selB.add(new Option(c.name,c.iso2));
-});
+ALL.forEach(e=>{const id=e.isCluster?e.id:e.iso2;selA.add(new Option(e.name,id));selB.add(new Option(e.name,id));});
 selA.value="SA";selB.value="EG";
 async function renderCompare(){
-  const A=byIso[selA.value],B=byIso[selB.value];
+  const A=byId[selA.value],B=byId[selB.value];
   const rows=[];
-  for(const[code,label,kind]of IND){
-    const[ra,rb]=await Promise.all([wb(A.iso3,code),wb(B.iso3,code)]);
-    const va=ra?ra.v:null,vb=rb?rb.v:null;
-    const aW=va!=null&&vb!=null&&va>vb,bW=va!=null&&vb!=null&&vb>va;
-    rows.push(`<tr><td>${label}</td>
-      <td class="${aW?"win":""}"><span dir="ltr">${va!=null?fmt(kind,va):"—"}</span>${ra?`<div style="font-size:10px;color:#6b7490;font-weight:400">${ra.y}</div>`:""}</td>
-      <td class="${bW?"win":""}"><span dir="ltr">${vb!=null?fmt(kind,vb):"—"}</span>${rb?`<div style="font-size:10px;color:#6b7490;font-weight:400">${rb.y}</div>`:""}</td></tr>`);
+  for(const g of["macro","demo","health"]){
+    rows.push(`<tr><td colspan="3" style="text-align:left;color:var(--gold);font-family:Sora;font-size:12px;letter-spacing:.1em">${{macro:"MACROECONOMICS",demo:"DEMOGRAPHICS",health:"HEALTH"}[g]} <span style="color:var(--mut);font-weight:400">· ${SOURCES[state.src[g]]}</span></td></tr>`);
+    for(const[key,label,kind]of IND[g]){
+      const[ra,rb]=await Promise.all([getVal(A,g,key),getVal(B,g,key)]);
+      const va=ra&&isFinite(ra.v)?ra.v:null,vb=rb&&isFinite(rb.v)?rb.v:null;
+      const aW=va!=null&&vb!=null&&va>vb,bW=va!=null&&vb!=null&&vb>va;
+      const cell=(r,v,w)=>`<td class="${w?"win":""}"><span dir="ltr">${v!=null?fmt(kind,v):"—"}</span>${r&&r.y?`<div style="font-size:10px;color:#6b7490;font-weight:400">${r.y}</div>`:""}</td>`;
+      rows.push(`<tr><td>${label}</td>${cell(ra,va,aW)}${cell(rb,vb,bW)}</tr>`);
+    }
   }
-  const stat=[["العاصمة",A.capital,B.capital],["العملة",A.currency,B.currency],["المساحة (كم²)",A.area,B.area],
-    ["العمر الوسيط",A.medAge+" سنة",B.medAge+" سنة"],["معدل الخصوبة",A.fert,B.fert],["مؤشر التنمية البشرية",A.hdi,B.hdi]];
+  const stat=[["Capital(s)",A.isCluster?A.capitals:A.capital,B.isCluster?B.capitals:B.capital],
+    ["Currency",A.currency,B.currency],["Area (km²)",A.area,B.area],
+    ["Median age",A.medAge+" yrs",B.medAge+" yrs"],["Fertility rate",A.fert,A.fert?B.fert:B.fert],["HDI",A.hdi,B.hdi]];
   stat.forEach(([l,x,y])=>rows.push(`<tr><td>${l}</td><td>${x}</td><td>${y}</td></tr>`));
+  const flag=e=>e.isCluster?'<span style="color:var(--gold);font-size:18px">&#x2B21;</span>'
+    :`<img src="https://flagcdn.com/w80/${e.iso2.toLowerCase()}.png" style="width:30px;border-radius:4px;vertical-align:middle">`;
   document.getElementById("cmptable").innerHTML=
-    `<tr><th style="text-align:start">المؤشر</th><th><img src="https://flagcdn.com/w80/${A.iso2.toLowerCase()}.png" style="width:30px;border-radius:4px;vertical-align:middle"> ${A.name}</th>
-     <th><img src="https://flagcdn.com/w80/${B.iso2.toLowerCase()}.png" style="width:30px;border-radius:4px;vertical-align:middle"> ${B.name}</th></tr>`+rows.join("");
+    `<tr><th style="text-align:left">Indicator</th><th>${flag(A)} ${A.name}</th><th>${flag(B)} ${B.name}</th></tr>`+rows.join("");
 }
 selA.onchange=selB.onchange=renderCompare;
 
-/* ================= REVEAL ================= */
+/* ==================== REVEAL & INIT ==================== */
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}}),{threshold:.12});
 document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
 
-/* ================= INIT ================= */
 renderList("");
 renderCompare();
 select("EG",false);
+loadTotals().then(()=>stamp());
 setTimeout(()=>map.invalidateSize(),400);
 </script>
 </body>
