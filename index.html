@@ -185,8 +185,8 @@ footer b{color:var(--gold2)}
     <a class="btn ghost" href="#net-sec">شبكة العلاقات</a>
   </div>
   <div class="totals">
-    <div class="t"><div class="n" id="tt-pop">…</div><div class="l">إجمالي السكان</div></div>
-    <div class="t"><div class="n" id="tt-gdp">…</div><div class="l">إجمالي الناتج المحلي</div></div>
+    <div class="t"><div class="n" dir="ltr" id="tt-pop">…</div><div class="l">إجمالي السكان</div></div>
+    <div class="t"><div class="n" dir="ltr" id="tt-gdp">…</div><div class="l">إجمالي الناتج المحلي</div></div>
     <div class="t"><div class="n">17</div><div class="l">دولة</div></div>
     <div class="t"><div class="n">18</div><div class="l">علاقة ثنائية مسجلة</div></div>
   </div>
@@ -328,15 +328,16 @@ const cache={};
 
 /* ================= HELPERS ================= */
 function fmt(kind,v){
-  if(v==null)return"—";
+  v=Number(v);
+  if(!isFinite(v))return"—";
   if(kind==="money"){const a=Math.abs(v);
-    if(a>=1e12)return"$"+(v/1e12).toFixed(2)+" تريليون";
-    if(a>=1e9)return"$"+(v/1e9).toFixed(1)+" مليار";
-    if(a>=1e6)return"$"+(v/1e6).toFixed(1)+" مليون";
+    if(a>=1e12)return"$"+(v/1e12).toFixed(2)+" tn";
+    if(a>=1e9)return"$"+(v/1e9).toFixed(1)+" bn";
+    if(a>=1e6)return"$"+(v/1e6).toFixed(1)+" m";
     return"$"+Math.round(v).toLocaleString("en-US");}
   if(kind==="int")return Math.round(v).toLocaleString("en-US");
   if(kind==="pct")return v.toFixed(1)+"%";
-  if(kind==="yrs")return v.toFixed(1)+" سنة";
+  if(kind==="yrs")return v.toFixed(1)+" yrs";
   return String(v);
 }
 async function wb(iso3,code,n){
@@ -351,6 +352,7 @@ async function wb(iso3,code,n){
   return cache[key];
 }
 function animate(el,target,fn,dur){
+  if(!isFinite(Number(target))){el.textContent="—";return;}
   const t0=performance.now();
   (function step(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);
     el.textContent=fn(target*e);if(p<1)requestAnimationFrame(step);})(t0);
@@ -363,8 +365,8 @@ function animate(el,target,fn,dur){
     const[p,g]=await Promise.all([wb(c.iso3,"SP.POP.TOTL"),wb(c.iso3,"NY.GDP.MKTP.CD")]);
     if(p)pop+=p.v;if(g)gdp+=g.v;
   }));
-  animate(document.getElementById("tt-pop"),pop,v=>Math.round(v).toLocaleString("en-US")+" نسمة");
-  animate(document.getElementById("tt-gdp"),gdp,v=>"$"+(v/1e12).toFixed(2)+" تريليون");
+  animate(document.getElementById("tt-pop"),pop,v=>Math.round(v).toLocaleString("en-US"));
+  animate(document.getElementById("tt-gdp"),gdp,v=>"$"+(v/1e12).toFixed(2)+" tn");
 })();
 
 /* ================= COUNTRY LIST ================= */
@@ -373,9 +375,9 @@ function renderList(q){
   clist.innerHTML="";
   COUNTRIES.filter(c=>!q||c.name.includes(q)).forEach(c=>{
     const d=document.createElement("div");d.className="c-item"+(c.iso2===current?" on":"");
-    d.innerHTML=`<img src="https://flagcdn.com/w80/${c.iso2.toLowerCase()}.png" alt=""><span class="nm">${c.name}</span><span class="pp" id="pp-${c.iso2}"></span>`;
+    d.innerHTML=`<img src="https://flagcdn.com/w80/${c.iso2.toLowerCase()}.png" alt=""><span class="nm">${c.name}</span><span class="pp" dir="ltr" id="pp-${c.iso2}"></span>`;
     d.onclick=()=>select(c.iso2);clist.appendChild(d);
-    wb(c.iso3,"SP.POP.TOTL").then(r=>{const e=document.getElementById("pp-"+c.iso2);if(e&&r)e.textContent=(r.v/1e6).toFixed(1)+" م";});
+    wb(c.iso3,"SP.POP.TOTL").then(r=>{const e=document.getElementById("pp-"+c.iso2);if(e&&r&&isFinite(r.v))e.textContent=(r.v/1e6).toFixed(1)+" m";});
   });
 }
 document.getElementById("search").addEventListener("input",e=>renderList(e.target.value.trim()));
@@ -406,7 +408,7 @@ async function renderProfile(iso,scroll){
     </div>
   </div>
   <div class="kpis">${IND.map(([code,label],i)=>`
-    <div class="glass kpi"><div class="v" id="k${i}">…</div><div class="l">${label}</div><div class="y" id="y${i}"></div></div>`).join("")}
+    <div class="glass kpi"><div class="v" dir="ltr" id="k${i}">…</div><div class="l">${label}</div><div class="y" id="y${i}"></div></div>`).join("")}
   </div>
   <div class="p-cols">
     <div class="glass panel"><h4>مسار الناتج المحلي <span>2000 – الآن · مليار دولار</span></h4><canvas class="chart" id="gdpchart"></canvas></div>
@@ -439,7 +441,7 @@ async function renderProfile(iso,scroll){
       backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,260);
         g.addColorStop(0,"#e6c15c44");g.addColorStop(1,"#e6c15c00");return g;}}]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
-      plugins:{legend:{display:false},tooltip:{rtl:true,callbacks:{label:x=>" "+x.parsed.y+" مليار $"}}},
+      plugins:{legend:{display:false},tooltip:{rtl:true,callbacks:{label:x=>" $"+x.parsed.y+" bn"}}},
       scales:{x:{ticks:{color:"#6b7490",maxTicksLimit:8},grid:{display:false}},
               y:{ticks:{color:"#6b7490"},grid:{color:"rgba(255,255,255,.05)"}}}}});
 
@@ -492,6 +494,13 @@ async function renderProfile(iso,scroll){
 /* ================= NETWORK ================= */
 const NS="http://www.w3.org/2000/svg";
 const svg=document.getElementById("netsvg"),tip=document.getElementById("nettip");
+{const defs=document.createElementNS(NS,"defs");
+ const rg=document.createElementNS(NS,"radialGradient");rg.setAttribute("id","ng");rg.setAttribute("cx","50%");rg.setAttribute("cy","45%");rg.setAttribute("r","70%");
+ const s1=document.createElementNS(NS,"stop");s1.setAttribute("offset","0%");s1.setAttribute("stop-color","#152244");
+ const s2=document.createElementNS(NS,"stop");s2.setAttribute("offset","100%");s2.setAttribute("stop-color","#0b1120");
+ rg.append(s1,s2);defs.append(rg);
+ const bg=document.createElementNS(NS,"rect");bg.setAttribute("width","800");bg.setAttribute("height","500");bg.setAttribute("fill","url(#ng)");bg.setAttribute("rx","14");
+ svg.append(defs,bg);}
 const px=lon=>20+(lon-22)/(68-22)*760, py=lat=>15+(46-lat)/(46-10)*460;
 const TS={trade:{c:"#60a5fa",w:2,d:""},remit:{c:"#93c5fd",w:1.6,d:"7 5"},
   energy:{c:"#a78bfa",w:2,d:""},diplo:{c:"#9ca3af",w:1.6,d:"2 5"},conflict:{c:"#f87171",w:2,d:"6 4"}};
@@ -501,7 +510,8 @@ const edgeEls=EDGES.map(e=>{
   l.setAttribute("x1",px(A.lon));l.setAttribute("y1",py(A.lat));
   l.setAttribute("x2",px(B.lon));l.setAttribute("y2",py(B.lat));
   l.setAttribute("stroke",s.c);l.setAttribute("stroke-width",s.w);l.setAttribute("stroke-linecap","round");
-  l.setAttribute("opacity",.55);
+  l.setAttribute("opacity",.8);
+  l.style.filter="drop-shadow(0 0 5px "+s.c+")";
   if(s.d)l.setAttribute("stroke-dasharray",s.d);
   l.dataset.a=e.a;l.dataset.b=e.b;
   const txt=`${A.name} ↔ ${B.name} — ${e.note}`;
@@ -518,7 +528,7 @@ COUNTRIES.forEach(c=>{
   const g=document.createElementNS(NS,"g");g.style.cursor="pointer";
   const ring=document.createElementNS(NS,"circle");
   ring.setAttribute("cx",px(c.lon));ring.setAttribute("cy",py(c.lat));ring.setAttribute("r",15);
-  ring.setAttribute("fill","none");ring.setAttribute("stroke","#e6c15c33");ring.setAttribute("stroke-width",1);
+  ring.setAttribute("fill","none");ring.setAttribute("stroke","#e6c15c55");ring.setAttribute("stroke-width",1);
   const r=document.createElementNS(NS,"circle");
   r.setAttribute("cx",px(c.lon));r.setAttribute("cy",py(c.lat));r.setAttribute("r",10);
   r.setAttribute("fill","#0e1730");r.setAttribute("stroke","#e6c15c");r.setAttribute("stroke-width",1.4);
@@ -528,7 +538,7 @@ COUNTRIES.forEach(c=>{
   t.textContent=c.iso2;
   const n=document.createElementNS(NS,"text");
   n.setAttribute("x",px(c.lon));n.setAttribute("y",py(c.lat)+30);
-  n.setAttribute("text-anchor","middle");n.setAttribute("font-size","11");n.setAttribute("fill","#9aa4bd");
+  n.setAttribute("text-anchor","middle");n.setAttribute("font-size","11");n.setAttribute("fill","#c3cbdd");
   n.textContent=c.name;
   g.append(ring,r,t,n);g.addEventListener("click",()=>select(c.iso2));
   g.addEventListener("mouseenter",()=>ring.setAttribute("stroke","#e6c15c"));
@@ -539,7 +549,7 @@ function highlightNet(iso){
   edgeEls.forEach(l=>{
     const hit=l.dataset.a===iso||l.dataset.b===iso;
     const t=TS[EDGES.find(e=>e.a===l.dataset.a&&e.b===l.dataset.b).type];
-    l.setAttribute("opacity",hit?1:.05);
+    l.setAttribute("opacity",hit?1:.12);
     l.setAttribute("stroke-width",hit?t.w+1:t.w);
   });
 }
@@ -568,8 +578,8 @@ async function renderCompare(){
     const va=ra?ra.v:null,vb=rb?rb.v:null;
     const aW=va!=null&&vb!=null&&va>vb,bW=va!=null&&vb!=null&&vb>va;
     rows.push(`<tr><td>${label}</td>
-      <td class="${aW?"win":""}">${va!=null?fmt(kind,va):"—"}${ra?`<div style="font-size:10px;color:#6b7490;font-weight:400">${ra.y}</div>`:""}</td>
-      <td class="${bW?"win":""}">${vb!=null?fmt(kind,vb):"—"}${rb?`<div style="font-size:10px;color:#6b7490;font-weight:400">${rb.y}</div>`:""}</td></tr>`);
+      <td class="${aW?"win":""}"><span dir="ltr">${va!=null?fmt(kind,va):"—"}</span>${ra?`<div style="font-size:10px;color:#6b7490;font-weight:400">${ra.y}</div>`:""}</td>
+      <td class="${bW?"win":""}"><span dir="ltr">${vb!=null?fmt(kind,vb):"—"}</span>${rb?`<div style="font-size:10px;color:#6b7490;font-weight:400">${rb.y}</div>`:""}</td></tr>`);
   }
   const stat=[["العاصمة",A.capital,B.capital],["العملة",A.currency,B.currency],["المساحة (كم²)",A.area,B.area],
     ["العمر الوسيط",A.medAge+" سنة",B.medAge+" سنة"],["معدل الخصوبة",A.fert,B.fert],["مؤشر التنمية البشرية",A.hdi,B.hdi]];
