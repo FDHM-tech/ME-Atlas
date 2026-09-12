@@ -97,7 +97,9 @@ nav a:hover{color:var(--tx);background:rgba(255,255,255,.06)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .kpi{padding:14px 16px;transition:.25s}
 .kpi:hover{transform:translateY(-4px);border-color:#e6c15c44}
+.kpi.oil{border-color:#f8717155;background:linear-gradient(160deg,rgba(248,113,113,.08),transparent)}
 .kpi .v{font-family:"Sora";font-size:20px;font-weight:700;color:var(--gold2);font-variant-numeric:tabular-nums}
+.kpi.oil .v{color:#ffb4a2}
 .kpi .l{font-size:12px;color:var(--mut);margin-top:3px}
 .kpi .y{font-size:10px;color:#6b7490}
 .p-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
@@ -160,9 +162,9 @@ footer b{color:var(--gold2)}
 
 <header class="hero">
   <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
-  <div class="kicker">Economy &middot; Demographics &middot; Health &middot; Relations</div>
+  <div class="kicker">Economy &middot; Oil &middot; Demographics &middot; Health &middot; Relations</div>
   <h1>Middle East Atlas</h1>
-  <p class="sub">Live macroeconomic, demographic and health indicators for 16 countries and 2 clusters
+  <p class="sub">Live macroeconomic, oil-rent, demographic and health indicators for 16 countries and 2 clusters
   (Levant &amp; GCC), the trade, energy, migration and diplomacy ties that bind them, and the iconic
   landmarks of each — with selectable data sources and continuously updated figures.</p>
   <div class="cta">
@@ -172,6 +174,7 @@ footer b{color:var(--gold2)}
   <div class="totals">
     <div class="t"><div class="n" id="tt-pop">…</div><div class="l">Total population</div></div>
     <div class="t"><div class="n" id="tt-gdp">…</div><div class="l">Combined GDP</div></div>
+    <div class="t"><div class="n" id="tt-oil">…</div><div class="l">Oil rents (US$)</div></div>
     <div class="t"><div class="n">16</div><div class="l">Countries</div></div>
     <div class="t"><div class="n">+2</div><div class="l">Clusters (Levant &middot; GCC)</div></div>
     <div class="t"><div class="n">13</div><div class="l">Trade &amp; energy ties</div></div>
@@ -254,6 +257,8 @@ footer b{color:var(--gold2)}
 <footer>
   <b>Middle East Atlas</b> — live-data prototype<br>
   Sources: World Bank API &middot; WHO Global Health Observatory &middot; Wikimedia Commons (attributed photos) &middot; Reference figures: areas, currencies, HDI<br>
+  Oil-sector size is proxied by <b>oil rents</b> (World Bank <code>NY.GDP.PETR.RT.ZS</code>): the value of crude-oil production at world prices
+  minus extraction costs, as a share of GDP. The US$ figure is derived as GDP × oil rents&nbsp;%.<br>
   Figures update automatically on load and on demand via the refresh button. Missing values are shown as &ldquo;&mdash;&rdquo;.<br>Bilateral trade volumes are approximate estimates (latest available year).
 </footer>
 
@@ -291,6 +296,12 @@ const ALL=[...CLUSTERS.map(c=>({...c,isCluster:true})),...COUNTRIES];
 const byId=Object.fromEntries(ALL.map(e=>[e.isCluster?e.id:e.iso2,e]));
 const byIso=Object.fromEntries(COUNTRIES.map(c=>[c.iso2,c]));
 
+/* ============ DEFAULTS (change these two to re-point the initial view) ============ */
+const DEFAULT_PROFILE="IQ";   /* Iraq */
+const DEFAULT_CMP_A="IQ";     /* Iraq */
+const DEFAULT_CMP_B="SA";     /* Saudi Arabia */
+/* ================================================================================ */
+
 const EDGES=[
 {a:"SA",b:"AE",type:"trade",vol:45,yr:"2023",note:"Non-oil bilateral trade"},
 {a:"IR",b:"IQ",type:"trade",vol:10,yr:"2022",note:"Iran's largest non-oil export market"},
@@ -307,12 +318,22 @@ const EDGES=[
 {a:"SA",b:"IQ",type:"energy",vol:null,yr:null,note:"Power-grid interconnection"},
 ];
 
-/* Indicator registry: [wbCode, label, kind] — whoCode optional */
+/* Indicator registry: [wbCode, label, kind, ?, ?, whoCode] */
 const IND={
-macro:[["NY.GDP.MKTP.CD","GDP (US$)","money"],["NY.GDP.PCAP.CD","GDP per capita (US$)","money"],["FP.CPI.TOTL.ZG","Inflation (CPI)","pct"],["SL.UEM.TOTL.ZS","Unemployment","pct"],["NE.EXP.GNFS.ZS","Exports, % of GDP","pct"],["NY.GDP.MKTP.KD.ZG","GDP growth","pct"]],
+macro:[
+  ["NY.GDP.MKTP.CD","GDP (US$)","money"],
+  ["NY.GDP.PCAP.CD","GDP per capita (US$)","money"],
+  ["NY.GDP.PETR.RT.ZS","Oil rents, % of GDP","pct"],
+  ["OIL.RENTS.USD","Oil rents (US$ value)","money"],
+  ["FP.CPI.TOTL.ZG","Inflation (CPI)","pct"],
+  ["SL.UEM.TOTL.ZS","Unemployment","pct"],
+  ["NE.EXP.GNFS.ZS","Exports, % of GDP","pct"],
+  ["NY.GDP.MKTP.KD.ZG","GDP growth","pct"]],
 demo:[["SP.POP.TOTL","Population","int"],["SP.POP.GROW","Population growth","pct"],["SP.URB.TOTL.IN.ZS","Urban population, %","pct"],["SP.POP.0014.TO.ZS","Ages 0–14, %","pct"],["SP.POP.1564.TO.ZS","Ages 15–64, %","pct"],["SP.POP.65UP.TO.ZS","Ages 65+, %","pct"],["SP.DYN.LE00.IN","Life expectancy (yrs)","yrs",,,"WHOSIS_000001"],["SP.DYN.IMRT.IN","Infant mortality (per 1,000)","num1",,,"WHOSIS_000015"]],
 health:[["SH.XPD.CHEX.GD.ZS","Health spending, % of GDP","pct"],["SH.XPD.CHEX.PC.CD","Health spending per capita (US$)","money"],["SH.XPD.GHED.CH.ZS","Public share of health spending, %","pct"],["SH.XPD.PVTD.CH.ZS","Private share of health spending, %","pct"],["SH.MED.BEDS.ZS","Hospital beds (per 1,000)","num1",,,"WHS_4"],["SH.MED.PHYS.ZS","Physicians (per 1,000)","num1",,,"WHS_5"],["SP.DYN.LE00.IN","Life expectancy (yrs)","yrs",,,"WHOSIS_000001"],["SP.DYN.IMRT.IN","Infant mortality (per 1,000)","num1",,,"WHOSIS_000015"]],
 };
+/* Indicators that get the "oil" highlight styling in the KPI grid */
+const OIL_KEYS=new Set(["NY.GDP.PETR.RT.ZS","OIL.RENTS.USD"]);
 const SOURCES={wb:"World Bank",who:"WHO",imf:"IMF"};
 const SRC_OPTS={macro:["wb","imf"],demo:["wb","who"],health:["wb","who"]};
 const IMFMAP={"NY.GDP.MKTP.CD":"NGDPD","NY.GDP.PCAP.CD":"NGDPDPC","FP.CPI.TOTL.ZG":"PCPIPCH","SL.UEM.TOTL.ZS":"LUR","NY.GDP.MKTP.KD.ZG":"NGDP_RPCH"};
@@ -383,26 +404,35 @@ function fetchIMF(ind,iso3){
   })();
   return cache[key];
 }
-function srcFn(src){return src==="who"?fetchWHO:fetchWB;}
 function indDef(group,key){return IND[group].find(d=>d[0]===key);}
 function indWHO(group,key){const d=indDef(group,key);return d&&d[5];}
 const SUM_KEYS=new Set(["SP.POP.TOTL","NY.GDP.MKTP.CD"]);
 
 async function getVal(ent,group,key){
+  /* --- derived indicator: value of oil rents = GDP × oil-rents share --- */
+  if(key==="OIL.RENTS.USD"){
+    const[g,r]=await Promise.all([getVal(ent,"macro","NY.GDP.MKTP.CD"),getVal(ent,"macro","NY.GDP.PETR.RT.ZS")]);
+    if(!g||!r||!isFinite(g.v)||!isFinite(r.v))return null;
+    return{v:g.v*r.v/100,y:r.y};
+  }
   const src=state.src[group];
   let code=key,fn=fetchWB;
-  if(src==="who"){code=indWHO(group,key);fn=fetchWHO;}
-  else if(src==="imf"){code=IMFMAP[key];fn=fetchIMF;}
-  if(!code)return null;
+  if(src==="who"){
+    const w=indWHO(group,key);
+    if(w){code=w;fn=fetchWHO;}          /* else: no WHO mapping → World Bank fallback */
+  }else if(src==="imf"){
+    const m=IMFMAP[key];
+    if(m){code=m;fn=fetchIMF;}          /* else: no IMF mapping → World Bank fallback */
+  }
   if(!ent.isCluster){
     const r=await fn(code,ent.iso3);
-    if(src==="who"&&!r)return fetchWB(key,ent.iso3);
+    if(fn!==fetchWB&&!r)return fetchWB(key,ent.iso3);
     return r;
   }
   /* cluster aggregation */
   let parts=await Promise.all(ent.members.map(m=>fn(code,byIso[m].iso3)));
   let ok=parts.filter(p=>p&&isFinite(p.v));
-  if(src==="who"&&!ok.length){
+  if(fn!==fetchWB&&!ok.length){
     parts=await Promise.all(ent.members.map(m=>fetchWB(key,byIso[m].iso3)));
     ok=parts.filter(p=>p&&isFinite(p.v));
   }
@@ -471,13 +501,17 @@ setInterval(async()=>{
 
 /* ==================== HERO TOTALS ==================== */
 async function loadTotals(){
-  let pop=0,gdp=0;
+  let pop=0,gdp=0,oil=0,oilAny=false;
   await Promise.allSettled(COUNTRIES.map(async c=>{
     const[p,g]=await Promise.all([fetchWB("SP.POP.TOTL",c.iso3),fetchWB("NY.GDP.MKTP.CD",c.iso3)]);
-    if(p)pop+=p.v;if(g)gdp+=g.v;
+    if(p)pop+=p.v;
+    if(g)gdp+=g.v;
+    const r=await fetchWB("NY.GDP.PETR.RT.ZS",c.iso3);
+    if(g&&r&&isFinite(r.v)){oil+=g.v*r.v/100;oilAny=true;}
   }));
   animate(document.getElementById("tt-pop"),pop,v=>Math.round(v).toLocaleString("en-US"));
   animate(document.getElementById("tt-gdp"),gdp,v=>"$"+(v/1e12).toFixed(2)+" tn");
+  animate(document.getElementById("tt-oil"),oilAny?oil:NaN,v=>"$"+(v/1e9).toFixed(0)+" bn");
 }
 
 /* ==================== LIST ==================== */
@@ -529,17 +563,18 @@ async function renderProfile(id,scroll){
   </div>
   ${["macro","demo","health"].map(g=>`
   <div class="grp">
-    <h4>${{macro:"Macroeconomics",demo:"Demographics",health:"Health"}[g]} <span id="cnt-${g}"></span></h4>
+    <h4>${{macro:"Macroeconomics &amp; oil sector",demo:"Demographics",health:"Health"}[g]} <span id="cnt-${g}"></span></h4>
     ${`<label class="src">Source
       <select data-grp="${g}">
         ${SRC_OPTS[g].map(k=>`<option value="${k}" ${state.src[g]===k?"selected":""}>${SOURCES[k]}</option>`).join("")}
       </select></label>`}
   </div>
   <div class="kpis" style="${gridCSS}">${g==="demo"?'<div class="glass kpi" style="border-color:#2dd4bf55"><div class="v" id="livepop" style="color:var(--teal)">…</div><div class="l">Population — live estimate</div><div class="y">Worldometer-style · WB base</div></div>':""}${IND[g].map((d,i)=>`
-    <div class="glass kpi"><div class="v" id="${g}-${i}">…</div><div class="l">${d[1]}</div><div class="y" id="${g}y-${i}"></div></div>`).join("")}
+    <div class="glass kpi${OIL_KEYS.has(d[0])?" oil":""}"><div class="v" id="${g}-${i}">…</div><div class="l">${d[1]}</div><div class="y" id="${g}y-${i}"></div></div>`).join("")}
   </div>`).join("")}
   <div class="p-cols">
     <div class="glass panel"><h4>GDP trajectory <span>2000–present · US$ bn</span></h4><div class="chartbox"><canvas id="c-gdp"></canvas></div></div>
+    <div class="glass panel"><h4>Oil sector size <span>oil rents, % of GDP · estimated US$ bn</span></h4><div class="chartbox"><canvas id="c-oil"></canvas></div></div>
     <div class="glass panel"><h4>Health spending trajectory <span>% of GDP · US$ per capita</span></h4><div class="chartbox"><canvas id="c-health"></canvas></div></div>
     <div class="glass panel"><h4>Health financing mix <span>latest year · % of current spending</span></h4><div class="chartbox"><canvas id="c-mix"></canvas></div></div>
       <div class="glass panel"><h4>GDP composition <span>latest year · % of GDP by sector</span></h4><div class="chartbox"><canvas id="c-sector"></canvas></div></div>
@@ -568,7 +603,7 @@ async function renderProfile(id,scroll){
         const el=document.getElementById(`${g}-${i}`);
         if(r&&isFinite(r.v)){animate(el,r.v,v=>fmt(kind,v));n++;}else el.textContent="—";
         document.getElementById(`${g}y-${i}`).textContent=r&&r.y?r.y:"";
-        document.getElementById("cnt-"+g).textContent={wb:"· via World Bank",who:"· via WHO (WB fallback)",imf:"· via IMF"}[state.src[g]];
+        document.getElementById("cnt-"+g).textContent={wb:"· via World Bank",who:"· via WHO (WB fallback)",imf:"· via IMF (WB fallback where unavailable)"}[state.src[g]];
       });
     }
   }
@@ -585,6 +620,24 @@ async function renderProfile(id,scroll){
     backgroundColor:c=>{const g=c.chart.ctx.createLinearGradient(0,0,0,250);g.addColorStop(0,"#e6c15c44");g.addColorStop(1,"#e6c15c00");return g;}}]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
       plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:x=>" $"+x.parsed.y+" bn"}}},scales:baseScales}});
+
+  /* ---- oil sector size: rents as % of GDP + derived US$ bn ---- */
+  const oilS=await getSeries(ent,"NY.GDP.PETR.RT.ZS",1);
+  if(mySeq!==reqSeq)return;
+  const gdpByYear=Object.fromEntries(gdp.labels.map((y,i)=>[y,gdp.data[i]]));
+  const oilBn=oilS.labels.map((y,i)=>{
+    const g=gdpByYear[y];
+    return(g!=null&&isFinite(g)&&isFinite(oilS.data[i]))?+(g*oilS.data[i]/100).toFixed(2):null;
+  });
+  mk("c-oil",{type:"line",data:{labels:oilS.labels,datasets:[
+      {label:"Oil rents, % of GDP",data:oilS.data,borderColor:"#f4d98c",borderWidth:2.4,pointRadius:0,pointHoverRadius:5,tension:.35,fill:true,yAxisID:"y",
+       backgroundColor:c=>{const g=c.chart.ctx.createLinearGradient(0,0,0,250);g.addColorStop(0,"#f4d98c33");g.addColorStop(1,"#f4d98c00");return g;}},
+      {label:"Oil rents, US$ bn (est.)",data:oilBn,borderColor:"#f87171",borderWidth:2.2,pointRadius:0,pointHoverRadius:5,tension:.35,yAxisID:"y1",borderDash:[6,4]}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{labels:{color:"#9aa4bd",boxWidth:14}},tooltip:{...tt,callbacks:{label:x=>" "+x.dataset.label+": "+(x.parsed.y==null?"—":x.parsed.y.toFixed(1))}}},
+      scales:{...baseScales,
+        y:{...baseScales.y,position:"left",title:{display:true,text:"% of GDP",color:"#f4d98c"}},
+        y1:{position:"right",ticks:{color:"#f87171"},grid:{display:false},title:{display:true,text:"US$ bn (est.)",color:"#f87171"}}}}});
 
   const[hpc,hgdp]=await Promise.all([getSeries(ent,"SH.XPD.CHEX.GD.ZS",1),getSeries(ent,"SH.XPD.CHEX.PC.CD",1)]);
   if(mySeq!==reqSeq)return;
@@ -743,18 +796,20 @@ window.select=select;
 /* ==================== COMPARE ==================== */
 const selA=document.getElementById("cmp-a"),selB=document.getElementById("cmp-b");
 ALL.forEach(e=>{const id=e.isCluster?e.id:e.iso2;selA.add(new Option(e.name,id));selB.add(new Option(e.name,id));});
-selA.value="SA";selB.value="EG";
+selA.value=DEFAULT_CMP_A;   /* Iraq */
+selB.value=DEFAULT_CMP_B;   /* Saudi Arabia */
 async function renderCompare(){
   const A=byId[selA.value],B=byId[selB.value];
   const rows=[];
   for(const g of["macro","demo","health"]){
-    rows.push(`<tr><td colspan="3" style="text-align:left;color:var(--gold);font-family:Sora;font-size:12px;letter-spacing:.1em">${{macro:"MACROECONOMICS",demo:"DEMOGRAPHICS",health:"HEALTH"}[g]} <span style="color:var(--mut);font-weight:400">· ${SOURCES[state.src[g]]}</span></td></tr>`);
+    rows.push(`<tr><td colspan="3" style="text-align:left;color:var(--gold);font-family:Sora;font-size:12px;letter-spacing:.1em">${{macro:"MACROECONOMICS &amp; OIL SECTOR",demo:"DEMOGRAPHICS",health:"HEALTH"}[g]} <span style="color:var(--mut);font-weight:400">· ${SOURCES[state.src[g]]}</span></td></tr>`);
     for(const[key,label,kind]of IND[g]){
       const[ra,rb]=await Promise.all([getVal(A,g,key),getVal(B,g,key)]);
       const va=ra&&isFinite(ra.v)?ra.v:null,vb=rb&&isFinite(rb.v)?rb.v:null;
       const aW=va!=null&&vb!=null&&va>vb,bW=va!=null&&vb!=null&&vb>va;
       const cell=(r,v,w)=>`<td class="${w?"win":""}"><span dir="ltr">${v!=null?fmt(kind,v):"—"}</span>${r&&r.y?`<div style="font-size:10px;color:#6b7490;font-weight:400">${r.y}</div>`:""}</td>`;
-      rows.push(`<tr><td>${label}</td>${cell(ra,va,aW)}${cell(rb,vb,bW)}</tr>`);
+      const hl=OIL_KEYS.has(key)?' style="color:#f4d98c"':'';
+      rows.push(`<tr><td${hl}>${label}${OIL_KEYS.has(key)?' <span style="color:#f87171;font-size:10px">oil</span>':""}</td>${cell(ra,va,aW)}${cell(rb,vb,bW)}</tr>`);
     }
   }
   const stat=[["Capital(s)",A.isCluster?A.capitals:A.capital,B.isCluster?B.capitals:B.capital],
@@ -780,7 +835,7 @@ async function renderCmpCharts(A,B){
   const s=++cmpSeq;
   cmpCharts.forEach(c=>c.destroy());cmpCharts.length=0;
   const tt={backgroundColor:"#111a30",borderColor:"rgba(255,255,255,.1)",borderWidth:1,titleColor:"#f4d98c",bodyColor:"#eef1f8"};
-  const RADAR=[["NY.GDP.PCAP.CD","GDP per capita"],["SH.XPD.CHEX.GD.ZS","Health % GDP"],["SP.DYN.LE00.IN","Life expectancy"],["SP.URB.TOTL.IN.ZS","Urban %"],["SH.MED.BEDS.ZS","Beds /1,000"],["SH.MED.PHYS.ZS","Doctors /1,000"]];
+  const RADAR=[["NY.GDP.PCAP.CD","GDP per capita"],["NY.GDP.PETR.RT.ZS","Oil rents % GDP"],["SH.XPD.CHEX.GD.ZS","Health % GDP"],["SP.DYN.LE00.IN","Life expectancy"],["SP.URB.TOTL.IN.ZS","Urban %"],["SH.MED.PHYS.ZS","Doctors /1,000"]];
   const vals=await Promise.all(RADAR.map(async([k])=>{
     const all=await Promise.all(COUNTRIES.map(c=>fetchWB(k,c.iso3)));
     const nums=all.filter(x=>x&&isFinite(x.v)).map(x=>x.v);
@@ -819,7 +874,7 @@ document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
 
 renderList("");
 renderCompare();
-select("EG",false);
+select(DEFAULT_PROFILE,false);   /* Iraq by default */
 loadTotals().then(()=>stamp());
 setTimeout(()=>map.invalidateSize(),400);
 </script>
