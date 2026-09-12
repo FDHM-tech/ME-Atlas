@@ -246,6 +246,10 @@ footer b{color:var(--gold2)}
       <div class="glass" style="padding:10px;overflow-x:auto">
         <table class="cmp" id="cmptable"></table>
       </div>
+      <div class="p-cols" style="margin-top:16px">
+        <div class="glass panel"><h4>Normalized profile radar <span>0&ndash;100 relative to all 17 countries</span></h4><div class="chartbox"><canvas id="cmp-radar"></canvas></div></div>
+        <div class="glass panel"><h4>GDP comparison <span>latest available &middot; US$ bn</span></h4><div class="chartbox"><canvas id="cmp-bars"></canvas></div></div>
+      </div>
     </div>
   </div>
 </section>
@@ -322,26 +326,44 @@ const state={src:{macro:"wb",demo:"wb",health:"wb"}};
 const cache={};
 
 /* ==================== FETCHERS ==================== */
-async function fetchWB(code,iso3,series){
+let activeReqs=0;const waitQ=[];
+async function throttled(task){
+  while(activeReqs>=6)await new Promise(r=>waitQ.push(r));
+  activeReqs++;
+  try{return await task();}
+  finally{activeReqs--;const n=waitQ.shift();if(n)n();}
+}
+async function fetchWithRetry(url){
+  for(let attempt=0;attempt<2;attempt++){
+    try{
+      const r=await throttled(()=>fetch(url));
+      return await r.json();
+    }catch(e){
+      if(attempt===1)return null;
+      await new Promise(r=>setTimeout(r,700));
+    }
+  }
+}
+function fetchWB(code,iso3,series){
   const key="wb:"+iso3+":"+code+(series?":s":"");
   if(cache[key]!==undefined)return cache[key];
-  try{
-    const url=`https://api.worldbank.org/v2/country/${iso3}/indicator/${code}?format=json&per_page=${series?80:8}&date=${series?"2000:2026":"2016:2026"}`;
-    const r=await fetch(url);const j=await r.json();
-    if(series){cache[key]=(j[1]||[]).filter(x=>x.value!=null).sort((p,q)=>+p.date-+q.date);return cache[key];}
-    const d=(j[1]||[]).find(x=>x.value!=null);
-    cache[key]=d?{v:+d.value,y:d.date}:null;
-  }catch(e){cache[key]=series?[]:null;}
+  cache[key]=(async()=>{
+    const j=await fetchWithRetry(`https://api.worldbank.org/v2/country/${iso3}/indicator/${code}?format=json&per_page=${series?80:8}&date=${series?"2000:2026":"2016:2026"}`);
+    if(!j||!j[1])return series?[]:null;
+    if(series)return j[1].filter(x=>x.value!=null).sort((p,q)=>+p.date-+q.date);
+    const d=j[1].find(x=>x.value!=null);
+    return d?{v:+d.value,y:d.date}:null;
+  })();
   return cache[key];
 }
-async function fetchWHO(code,iso3){
+function fetchWHO(code,iso3){
   const key="who:"+iso3+":"+code;
   if(cache[key]!==undefined)return cache[key];
-  try{
-    const r=await fetch(`https://ghoapi.azureedge.net/api/${code}?$filter=SpatialDimension eq '${iso3}'&$orderby=TimeDimension desc&$top=1`);
-    const j=await r.json();const d=j.value&&j.value[0];
-    cache[key]=d?{v:+d.Value,y:String(d.TimeDimension)}:null;
-  }catch(e){cache[key]=null;}
+  cache[key]=(async()=>{
+    const j=await fetchWithRetry(`https://ghoapi.azureedge.net/api/${code}?$filter=SpatialDimension eq '${iso3}'&$orderby=TimeDimension desc&$top=1`);
+    const d=j&&j.value&&j.value[0];
+    return d?{v:+d.Value,y:String(d.TimeDimension)}:null;
+  })();
   return cache[key];
 }
 function srcFn(src){return src==="who"?fetchWHO:fetchWB;}
@@ -398,7 +420,7 @@ function fmt(kind,v){
   if(kind==="num1")return v.toFixed(1);
   return String(v);
 }
-function animate(el,target,fn,dur){
+function animate(el,target,fn,dur=1200){
   if(!isFinite(Number(target))){el.textContent="—";return;}
   const t0=performance.now();
   (function step(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);
@@ -697,6 +719,48 @@ async function renderCompare(){
     :`<img src="https://flagcdn.com/w80/${e.iso2.toLowerCase()}.png" style="width:30px;border-radius:4px;vertical-align:middle">`;
   document.getElementById("cmptable").innerHTML=
     `<tr><th style="text-align:left">Indicator</th><th>${flag(A)} ${A.name}</th><th>${flag(B)} ${B.name}</th></tr>`+rows.join("");
+  renderCmpCharts(A,B);
+}
+async function rawVal(ent,key){
+  if(!ent.isCluster)return fetchWB(key,ent.iso3);
+  const parts=await Promise.all(ent.members.map(m=>fetchWB(key,byIso[m].iso3)));
+  const ok=parts.filter(p=>p&&isFinite(p.v));
+  if(!ok.length)return null;
+  if(SUM_KEYS.has(key))return{v:ok.reduce((s,p)=>s+p.v,0)};
+  return{v:ok.reduce((s,p)=>s+p.v,0)/ok.length};
+}
+let cmpSeq=0;const cmpCharts=[];
+async function renderCmpCharts(A,B){
+  const s=++cmpSeq;
+  cmpCharts.forEach(c=>c.destroy());cmpCharts.length=0;
+  const tt={backgroundColor:"#111a30",borderColor:"rgba(255,255,255,.1)",borderWidth:1,titleColor:"#f4d98c",bodyColor:"#eef1f8"};
+  const RADAR=[["NY.GDP.PCAP.CD","GDP per capita"],["SH.XPD.CHEX.GD.ZS","Health % GDP"],["SP.DYN.LE00.IN","Life expectancy"],["SP.URB.TOTL.IN.ZS","Urban %"],["SH.MED.BEDS.ZS","Beds /1,000"],["SH.MED.PHYS.ZS","Doctors /1,000"]];
+  const vals=await Promise.all(RADAR.map(async([k])=>{
+    const all=await Promise.all(COUNTRIES.map(c=>fetchWB(k,c.iso3)));
+    const nums=all.filter(x=>x&&isFinite(x.v)).map(x=>x.v);
+    if(!nums.length)return[null,null];
+    const lo=Math.min(...nums),hi=Math.max(...nums);
+    const norm=async ent=>{const r=await rawVal(ent,k);
+      if(!r||!isFinite(r.v))return null;
+      return hi>lo?+((r.v-lo)/(hi-lo)*100).toFixed(1):50;};
+    return[await norm(A),await norm(B)];
+  }));
+  if(s!==cmpSeq)return;
+  cmpCharts.push(new Chart(document.getElementById("cmp-radar"),{type:"radar",
+    data:{labels:RADAR.map(r=>r[1]),datasets:[
+      {label:A.name,data:vals.map(v=>v[0]),borderColor:"#e6c15c",backgroundColor:"#e6c15c33",borderWidth:2,pointBackgroundColor:"#e6c15c"},
+      {label:B.name,data:vals.map(v=>v[1]),borderColor:"#2dd4bf",backgroundColor:"#2dd4bf33",borderWidth:2,pointBackgroundColor:"#2dd4bf"}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:"rgba(255,255,255,.08)"},angleLines:{color:"rgba(255,255,255,.08)"},pointLabels:{color:"#9aa4bd",font:{size:11}}}},
+      plugins:{legend:{labels:{color:"#9aa4bd",boxWidth:14}},tooltip:{...tt,callbacks:{label:x=>" "+x.dataset.label+": "+(x.parsed.r==null?"n/a":x.parsed.r+"/100")}}}}}));
+  const[ga,gb]=await Promise.all([rawVal(A,"NY.GDP.MKTP.CD"),rawVal(B,"NY.GDP.MKTP.CD")]);
+  if(s!==cmpSeq)return;
+  cmpCharts.push(new Chart(document.getElementById("cmp-bars"),{type:"bar",
+    data:{labels:[A.name,B.name],datasets:[{data:[ga&&isFinite(ga.v)?+(ga.v/1e9).toFixed(1):null,gb&&isFinite(gb.v)?+(gb.v/1e9).toFixed(1):null],
+      backgroundColor:["#e6c15ccc","#2dd4bfcc"],borderRadius:10,maxBarThickness:90}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:x=>" $"+x.parsed.y+" bn"}}},
+      scales:{x:{ticks:{color:"#9aa4bd"},grid:{display:false}},y:{ticks:{color:"#6b7490"},grid:{color:"rgba(255,255,255,.05)"}}}}}));
 }
 selA.onchange=selB.onchange=renderCompare;
 
